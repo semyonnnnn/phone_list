@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Form, HTTPException, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
-from auth import is_authenticated, ADMIN_USER, AUTH_COOKIE
-from database import get_db
+from app.auth import is_authenticated, ADMIN_USER, AUTH_COOKIE
+from app.database import get_db
 
 router = APIRouter()
 
@@ -9,13 +9,24 @@ router = APIRouter()
 async def home(request: Request):
     if not is_authenticated(request):
         return RedirectResponse(url="/login")
-    with open("index.html", "r", encoding="utf-8") as f:
+    with open("public/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page():
-    with open("login.html", "r", encoding="utf-8") as f:
+    with open("public/login.html", "r", encoding="utf-8") as f:
         return f.read()
+
+@router.get("/test", response_class=HTMLResponse)
+async def test_route():  # <--- Make sure this line exists!
+    return """
+    <html>
+        <body style="background: #000; color: #0ff; font-family: monospace; text-align: center; padding-top: 50px;">
+            <h1>[ NEURAL LATTICE ]</h1>
+            <p>ROUTER STATUS: ONLINE</p>
+        </body>
+    </html>
+    """
 
 @router.post("/login")
 async def login(response: Response, username: str = Form(...), password: str = Form(...)):
