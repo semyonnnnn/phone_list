@@ -1,6 +1,8 @@
+import os
+from app.auth import is_authenticated, ADMIN_USERNAME, ADMIN_PASSWORD, AUTH_COOKIE
 from fastapi import APIRouter, Request, Form, HTTPException, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
-from app.auth import is_authenticated, ADMIN_USER, AUTH_COOKIE
+from dotenv import load_dotenv
 from app.database import get_db
 
 router = APIRouter()
@@ -30,7 +32,7 @@ async def test_route():  # <--- Make sure this line exists!
 
 @router.post("/login")
 async def login(response: Response, username: str = Form(...), password: str = Form(...)):
-    if username == ADMIN_USER["username"] and password == ADMIN_USER["password"]:
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
         response = RedirectResponse(url="/", status_code=303)
         response.set_cookie(key="session_id", value=AUTH_COOKIE)
         return response
