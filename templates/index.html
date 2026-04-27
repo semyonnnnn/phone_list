@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+{% endblock %}
+
+{% block title %}Справочник Свердловскстата{% endblock %}
+
+{% block children %}
+<h1>📇 Телефонный справочник (эталон + обновление)</h1>
+
+<div class="upload-container">
+    <label for="excel-file">Загрузите файл Excel (.xlsx):</label>
+    <input type="file" id="excel-file" accept=".xlsx, .xls">
+    <div class="download-section">
+        <button id="downloadBtn">⬇ Скачать справочник (Word)</button>
+    </div>
+</div>
+
+<div class="search-container">
+    <input type="text" id="search-input" placeholder="🔍 Поиск по ФИО..." autocomplete="off">
+    <button id="clear-search">✖ Сбросить</button>
+</div>
+
+<div id="preview" class="preview">
+    <h3>Сгенерированный справочник</h3>
+    <div id="directory-content" class="directory-content">Ожидание загрузки данных...</div>
+</div>
+
+<script src="/public/js/script.js"></script>
+{% endblock %}
