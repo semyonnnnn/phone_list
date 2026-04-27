@@ -1,0 +1,22 @@
+services:
+  excel-converter:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      network: host
+      args:
+        - http_proxy=http://10.166.20.226:3128/
+        - https_proxy=http://10.166.20.226:3128/
+    container_name: phone_list
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    # network_mode: "host"    
+    environment:
+      - http_proxy=http://10.166.20.226:3128/
+      - https_proxy=http://10.166.20.226:3128/
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+
+    volumes:
+      - .:/app  # Maps your current folder to /app in the container
