@@ -1,8 +1,9 @@
 import os
 from app.auth import is_authenticated, ADMIN_USERNAME, ADMIN_PASSWORD, AUTH_COOKIE
-from fastapi import APIRouter, Request, Form, Response
+from fastapi import APIRouter, Request, Form, Response, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
-from app.ui import templates  # Using the shared UI provider we discussed
+from app.ui import templates
+from app.process_excel import process_excel
 
 router = APIRouter()
 
@@ -44,3 +45,9 @@ async def login(username: str = Form(...), password: str = Form(...)):
         return response
     
     return HTMLResponse("Wrong credentials", status_code=401)
+
+@router.post("/upload")
+async def upload(file: UploadFile = File(...)):
+    file_content = await file.read()
+    result = process_excel(file_content)
+    return result

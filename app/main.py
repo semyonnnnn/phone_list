@@ -7,7 +7,6 @@ from fastapi.templating import Jinja2Templates
 app = FastAPI(title="MegaCorp Neural Lattice")
 
 # Mount static files and include our router
-app.mount("/styles", StaticFiles(directory="styles"), name="styles")
 app.mount("/public", StaticFiles(directory="public"), name="public")
 app.include_router(router)
 

@@ -10,8 +10,9 @@
 <h1>📇 Телефонный справочник (эталон + обновление)</h1>
 
 <div class="upload-container">
-    <label for="excel-file">Загрузите файл Excel (.xlsx):</label>
-    <input type="file" id="excel-file" accept=".xlsx, .xls">
+    <label for="excel_file">Загрузите файл Excel (.xlsx):</label>
+    <input type="file" id="excel_file" accept=".xlsx, .xls">
+    <p id="status" class="statusElement hidden"></p>
     <div class="download-section">
         <button id="downloadBtn">⬇ Скачать справочник (Word)</button>
     </div>
@@ -26,6 +27,6 @@
     <h3>Сгенерированный справочник</h3>
     <div id="directory-content" class="directory-content">Ожидание загрузки данных...</div>
 </div>
-
-<script src="/public/js/script.js"></script>
+<script src="/public/ajax.js" defer></script>
+<!-- <script src="/public/js/script.js"></script> -->
 {% endblock %}

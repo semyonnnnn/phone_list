@@ -131,3 +131,14 @@
             letter-spacing: 2px;
             opacity: 0.6;
         }
+
+        .hidden{
+            display: none !important;
+        }
+        .statusElement{
+            margin-top: .2rem; 
+            font-weight: bold;
+            background-color: black;
+            padding: 1rem;
+            width: fit-content;   
+        }
