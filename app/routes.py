@@ -3,7 +3,7 @@ from app.auth import is_authenticated, ADMIN_USERNAME, ADMIN_PASSWORD, AUTH_COOK
 from fastapi import APIRouter, Request, Form, Response, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from app.ui import templates
-from app.process_excel import process_excel
+from app.database.process_excel import process_excel
 
 router = APIRouter()
 

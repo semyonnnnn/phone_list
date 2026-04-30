@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.database import init_db
+from app.database.connect import init_db
 from app.routes import router
 from fastapi.templating import Jinja2Templates
 
