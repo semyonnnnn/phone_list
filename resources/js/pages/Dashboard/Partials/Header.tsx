@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import React, { useState, useRef } from 'react';
+import { Link, router } from '@inertiajs/react';
 import DepartmentDropdown from './DepartmentDropdown';
 
 interface HeaderProps {
@@ -8,22 +8,31 @@ interface HeaderProps {
 
 export default function Header({ isAuthenticated }: HeaderProps) {
     const [selectedOption, setSelectedOption] = useState('Все отделы');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const options = [
         { label: 'Все отделы', value: '' },
         { label: 'Руководство', value: 'lead' },
-        { label: '01 - Отдел сводных статистических работ', value: 'dep01' }, { label: 'Все отделы', value: '' },
-        { label: 'Руководство', value: 'lead' },
-        { label: '01 - Отдел сводных статистических работ', value: 'dep01' }, { label: 'Все отделы', value: '' },
-        { label: 'Руководство', value: 'lead' },
-        { label: '01 - Отдел сводных статистических работ', value: 'dep01' }, { label: 'Все отделы', value: '' },
-        { label: 'Руководство', value: 'lead' },
-        { label: '01 - Отдел сводных статистических работ', value: 'dep01' }, { label: 'Все отделы', value: '' },
-        { label: 'Руководство', value: 'lead' },
-        { label: '01 - Отдел сводных статистических работ', value: 'dep01' }, { label: 'Все отделы', value: '' },
-        { label: 'Руководство', value: 'lead' },
         { label: '01 - Отдел сводных статистических работ', value: 'dep01' },
     ];
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        router.post(route('files.upload'), formData, {
+            forceFormData: true,
+            onSuccess: () => {
+                // Clear the input so the same file can be chosen again if needed
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
+        });
+    };
 
     return (
         <div
@@ -39,6 +48,15 @@ export default function Header({ isAuthenticated }: HeaderProps) {
                 style={{
                     background: 'linear-gradient(to right, #f5f5f5 0%, rgba(245, 245, 245, 0.8) 70%, transparent 100%)',
                 }}
+            />
+
+            {/* Hidden File Input for Excel Upload */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".xlsx, .xls"
+                className="hidden"
             />
 
             {/* Left Side: Search & Department Dropdown grouped together */}
@@ -63,6 +81,7 @@ export default function Header({ isAuthenticated }: HeaderProps) {
                     <>
                         <button
                             type="button"
+                            onClick={() => fileInputRef.current?.click()}
                             className="text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
                             style={{ fontFamily: '"Courier New", Courier, monospace' }}
                         >
