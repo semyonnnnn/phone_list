@@ -1,0 +1,29 @@
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: ['resources/css/app.css', 'resources/js/app.tsx'],
+            refresh: true,
+        }),
+        tailwindcss(),
+        react(),
+    ],
+    server: {
+        host: '0.0.0.0',
+        port: 5175,
+        strictPort: true,
+        cors: true,
+        origin: 'http://10.166.20.85:5175',
+        hmr: {
+            host: '10.166.20.85',
+            protocol: 'ws',
+        },
+        watch: {
+            ignored: ['**/storage/framework/views/**'],
+        },
+    },
+});
