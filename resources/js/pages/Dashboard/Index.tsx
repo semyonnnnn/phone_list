@@ -24,31 +24,95 @@ interface DepartmentOption {
     value: DepartmentValue;
 }
 
-export default function Index() {
-    const { auth, departments } = usePage().props as unknown as {
-        auth: { is_authenticated: boolean; user_id?: number | null };
-        departments?: Array<{ group: string; phones: PhoneRecord[] }>;
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PageProps {
+    auth: { is_authenticated: boolean; user_id?: number | null };
+    departments?: Array<{ group: string; phones: PhoneRecord[] }>;
+    allGroups?: string[];
+    totalDatabaseCount?: number;
+    pagination?: {
+        current_page: number;
+        last_page: number;
+        links: PaginationLink[];
+        total: number;
     };
+    filters?: {
+        search?: string;
+        department?: string;
+    };
+    [key: string]: any;
+}
+
+export default function Index() {
+    const { auth, departments, allGroups, totalDatabaseCount, pagination, filters } = usePage().props as unknown as PageProps;
 
     const initialDeps = departments && departments.length > 0 ? departments : [];
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
-    const [selectedOption, setSelectedOption] = useState('Все отделы');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedOption, setSelectedOption] = useState(filters?.department || 'Все отделы');
+    const [searchQuery, setSearchQuery] = useState(filters?.search || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, processing } = useForm({
         departments: initialDeps,
     });
 
-    // Synchronize form state if props update post-hydration
     useEffect(() => {
-        if (departments && departments.length > 0) {
+        if (departments) {
             setData('departments', departments);
             setOriginalDeps(JSON.parse(JSON.stringify(departments)));
         }
     }, [departments]);
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const currentSearch = filters?.search || '';
+            const currentDep = filters?.department || 'Все отделы';
+
+            if (searchQuery !== currentSearch || selectedOption !== currentDep) {
+                router.get(
+                    route('phones.index'),
+                    {
+                        search: searchQuery,
+                        department: selectedOption === 'Все отделы' ? '' : selectedOption
+                    },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        replace: true,
+                    }
+                );
+            }
+        }, 350);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery, selectedOption]);
+
     const hasChanges = JSON.stringify(data.departments) !== JSON.stringify(originalDeps);
+
+    const handleDownload = () => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = route('files.download');
+        form.style.display = 'none';
+
+        const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
+    };
 
     const handleFieldChangeByIndices = (depIndex: number, rowIndex: number, field: keyof PhoneRecord, value: string) => {
         const updatedDeps = [...data.departments];
@@ -96,32 +160,61 @@ export default function Index() {
 
     const dropdownOptions: DepartmentOption[] = [
         { label: 'Все отделы', value: { number: '', name: '' } },
-        ...initialDeps.map((dep, i) => ({
-            label: dep.group,
-            value: { number: String(i), name: dep.group }
+        ...(allGroups || []).map((groupName, i) => ({
+            label: groupName,
+            value: { number: String(i), name: groupName }
         }))
     ];
 
-    const filteredDepartments = data.departments.filter((dep) => {
-        if (selectedOption === 'Все отделы') return true;
-        return dep.group === selectedOption;
-    });
+    const filteredDepartments = data.departments;
 
-    const searchResults = searchQuery.trim() === '' ? [] : data.departments.flatMap((dep, depIndex) =>
-        dep.phones
-            .map((phone, rowIndex) => ({ phone, depIndex, rowIndex, groupName: dep.group }))
-            .filter(({ phone }) =>
-                phone.person.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-    );
+    const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
+    const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');
 
-    const getResultWord = (count: number) => {
-        const mod10 = count % 10;
-        const mod100 = count % 100;
-        if (mod100 >= 11 && mod100 <= 19) return 'результатов';
-        if (mod10 === 1) return 'результат';
-        if (mod10 >= 2 && mod10 <= 4) return 'результата';
-        return 'результатов';
+    // Translate pagination labels into Russian
+    const translatePaginationLabel = (label: string) => {
+        if (label.includes('Previous') || label.includes('&laquo;')) {
+            return '« Назад';
+        }
+        if (label.includes('Next') || label.includes('&raquo;')) {
+            return 'Вперед »';
+        }
+        return label;
+    };
+
+    // Reusable pagination component with slightly brighter backgrounds
+    const renderPagination = () => {
+        if (!pagination || pagination.last_page <= 1) return null;
+
+        return (
+            <div className="flex justify-center items-center gap-2 py-4 bg-[#1a1a1a]/90 border border-[#555] shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+                {pagination.links.map((link, idx) => {
+                    const translatedLabel = translatePaginationLabel(link.label);
+                    if (!link.url) {
+                        return (
+                            <span
+                                key={idx}
+                                className="px-3 py-1 text-[#777] bg-[#222] border border-[#444] cursor-not-allowed text-[1rem]"
+                                dangerouslySetInnerHTML={{ __html: translatedLabel }}
+                            />
+                        );
+                    }
+                    return (
+                        <Link
+                            key={idx}
+                            href={link.url}
+                            preserveState
+                            preserveScroll
+                            className={`px-3 py-1 border text-[1rem] transition-colors ${link.active
+                                ? 'bg-white text-black font-bold border-white'
+                                : 'bg-[#2d2d2d] text-[#e0e0e0] border-[#666] hover:bg-[#3d3d3d]'
+                                }`}
+                            dangerouslySetInnerHTML={{ __html: translatedLabel }}
+                        />
+                    );
+                })}
+            </div>
+        );
     };
 
     return (
@@ -160,7 +253,6 @@ export default function Index() {
         >
             <Head title="Справочник" />
 
-            {/* Hidden File Input for Excel Upload */}
             <input
                 type="file"
                 ref={fileInputRef}
@@ -169,7 +261,6 @@ export default function Index() {
                 className="hidden"
             />
 
-            {/* Embedded Header Bar */}
             <div
                 className="p-5 border border-[#ccc] flex justify-between items-center mb-14 shadow-[6px_6px_0px_rgba(0,0,0,0.4)] relative z-40"
                 style={{
@@ -191,13 +282,15 @@ export default function Index() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="text-[1.15rem] p-2 border-0 border-b border-[#999] w-[300px] outline-none bg-transparent focus:border-[#000]"
                         style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                        placeholder="Поиск по ФИО..."
+                        placeholder="Поиск по ФИО / телефону..."
                     />
 
                     <DepartmentDropdown
                         options={dropdownOptions}
                         selectedOption={selectedOption}
-                        onSelect={(opt) => setSelectedOption(opt.label)}
+                        onSelect={(option) => {
+                            setSelectedOption(option.label);
+                        }}
                     />
                 </div>
 
@@ -214,7 +307,7 @@ export default function Index() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => router.post(route('files.download'))}
+                                onClick={handleDownload}
                                 className="text-[1.15rem] px-5 py-2 bg-[#e5e5e5] text-[#000] border border-black cursor-pointer font-bold hover:bg-[#d5d5d5] mr-4"
                                 style={{ fontFamily: '"Courier New", Courier, monospace' }}
                             >
@@ -248,10 +341,8 @@ export default function Index() {
                 </div>
             </div>
 
-            {/* Dynamic Content Container */}
             <main className="mt-12 space-y-12">
-                {/* Disclaimer / Empty State Notification */}
-                {data.departments.length === 0 ? (
+                {isDatabaseEmpty ? (
                     <div className="border-2 border-[#888] p-8 text-center bg-black/90 shadow-[6px_6px_0px_rgba(255,255,255,0.15)] text-[#f0f0f0]">
                         <div className="text-[1.25rem] font-bold tracking-wider uppercase mb-2 text-[#ffcc00]">
                             [!]  Справочник пуст!
@@ -260,86 +351,43 @@ export default function Index() {
                             Загрузите файл через панель администратора!
                         </div>
                     </div>
+                ) : filteredDepartments.length === 0 ? (
+                    <div className="border-2 border-[#888] p-8 text-center bg-black/90 shadow-[6px_6px_0px_rgba(255,255,255,0.15)] text-[#f0f0f0]">
+                        <div className="text-[1.25rem] font-bold tracking-wider uppercase mb-2 text-[#ffcc00]">
+                            [!]  Ничего не найдено
+                        </div>
+                        <div className="text-[1.1rem] text-[#aaa]">
+                            {isSearchActive ? `По запросу "${filters?.search}" совпадений не обнаружено.` : 'В выбранном отделе нет записей.'}
+                        </div>
+                    </div>
                 ) : (
                     <>
-                        {/* Search Results Dynamic Block with Slow, Subtle CRT Scanline */}
-                        {searchQuery.trim() !== '' && (
-                            <div
-                                className="border-2 border-[#888] p-6 shadow-[6px_6px_0px_rgba(255,255,255,0.15)] relative overflow-hidden"
-                                style={{
-                                    backgroundImage: `
-                                        radial-gradient(circle at 50% 50%, rgba(100, 100, 100, 0.25) 0%, transparent 70%),
-                                        repeating-radial-gradient(circle at 50% 50%, #111 0, #111 2px, #222 3px, #444 4px, #111 5px)
-                                    `,
-                                    backgroundSize: '4px 4px, 2px 2px',
-                                    backgroundColor: '#0a0a0a',
-                                    fontFamily: '"Courier New", Courier, monospace',
-                                }}
-                            >
-                                {/* Slow CRT Scanline Beam */}
-                                <div
-                                    className="absolute inset-y-0 w-[1px] bg-white pointer-events-none z-0 shadow-[0_0_6px_rgba(255,255,255,0.4)]"
-                                    style={{
-                                        animation: 'crt-sweep 10s ease-in-out infinite alternate, crt-flash 6s ease-in-out infinite'
-                                    }}
-                                />
+                        {/* Top Pagination */}
+                        {renderPagination()}
 
-                                <style>{`
-                                    @keyframes crt-sweep {
-                                        0% { left: 40%; }
-                                        100% { left: 98%; }
-                                    }
-                                    @keyframes crt-flash {
-                                        0%, 90%, 100% { opacity: 0.03; }
-                                        93%, 95% { opacity: 0.45; }
-                                    }
-                                `}</style>
-
-                                <div className="relative z-10 text-[1.1rem] font-bold text-[#f0f0f0] mb-4 border-b border-[#666]/40 pb-2 uppercase tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                                    Результаты поиска: [ {searchQuery} ] &nbsp;[ _ {searchResults.length} {getResultWord(searchResults.length)} _ ]
-                                </div>
-
-                                <div className="relative z-10">
-                                    {searchResults.length === 0 ? (
-                                        <div className="text-[#aaa] italic py-4 bg-black/80 p-4 border border-[#555]/30">Сотрудников не найдено.</div>
-                                    ) : (
-                                        <DepCard
-                                            dep={{
-                                                group: 'Найденные совпадения',
-                                                phones: searchResults.map(r => r.phone)
-                                            }}
-                                            depIndex={0}
-                                            isAuthenticated={auth.is_authenticated}
-                                            onFieldChange={(_, searchRowIndex, field, value) => {
-                                                const target = searchResults[searchRowIndex];
-                                                handleFieldChangeByIndices(target.depIndex, target.rowIndex, field, value);
-                                            }}
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Standard Department Cards (Filtered by Dropdown) */}
                         <div className="space-y-8">
                             {filteredDepartments.map((dep) => {
                                 const realDepIndex = data.departments.findIndex(d => d.group === dep.group);
                                 return (
                                     <DepCard
-                                        key={realDepIndex}
+                                        key={realDepIndex >= 0 ? realDepIndex : dep.group}
                                         dep={dep}
-                                        depIndex={realDepIndex}
+                                        depIndex={realDepIndex >= 0 ? realDepIndex : 0}
                                         isAuthenticated={auth.is_authenticated}
                                         onFieldChange={handleFieldChangeByIndices}
                                     />
                                 );
                             })}
                         </div>
+
+                        {/* Bottom Pagination */}
+                        <div className="mt-8">
+                            {renderPagination()}
+                        </div>
                     </>
                 )}
             </main>
 
-            {/* Floating Action Window */}
             {hasChanges && auth.is_authenticated && (
                 <div
                     className="fixed bottom-6 left-6 z-50 bg-[#222] text-white border-2 border-white p-4 shadow-[6px_6px_0px_rgba(0,0,0,0.6)] flex flex-col gap-3"

@@ -14,6 +14,7 @@ interface DepartmentDropdownProps {
     options: Option[];
     selectedOption: string;
     onSelect: (option: Option) => void;
+    onSearch?: (query: string) => Promise<Option[]> | void;
 }
 
 export default function DepartmentDropdown({
@@ -23,13 +24,33 @@ export default function DepartmentDropdown({
 }: DepartmentDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [dynamicOptions, setDynamicOptions] = useState<Option[]>(options);
+
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Filter options based on user input
-    const filteredOptions = options.filter((opt) =>
-        opt.label.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Keep internal options synchronized if props update
+    useEffect(() => {
+        setDynamicOptions(options);
+    }, [options]);
+
+    // Filter options locally and immediately whenever searchQuery or isOpen changes
+    useEffect(() => {
+        if (!isOpen) {
+            setDynamicOptions(options);
+            return;
+        }
+
+        if (!searchQuery.trim()) {
+            setDynamicOptions(options);
+        } else {
+            setDynamicOptions(
+                options.filter((opt) =>
+                    opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+            );
+        }
+    }, [searchQuery, isOpen, options]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -96,8 +117,8 @@ export default function DepartmentDropdown({
                         fontFamily: '"Courier New", Courier, monospace',
                     }}
                 >
-                    {filteredOptions.length > 0 ? (
-                        filteredOptions.map((opt, idx) => (
+                    {dynamicOptions.length > 0 ? (
+                        dynamicOptions.map((opt, idx) => (
                             <div
                                 key={idx}
                                 onClick={() => {

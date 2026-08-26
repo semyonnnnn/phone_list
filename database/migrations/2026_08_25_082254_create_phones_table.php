@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('phones', function (Blueprint $table) {
             $table->id();
-            $table->string('person');          // ФИО
-            $table->string('group');           // Группа
-            $table->string('phone');           // Телефон
-            $table->string('extension');       // Добавочный
+            $table->string('person')->collation('utf8mb4_unicode_ci');          // ФИО (case-insensitive for Cyrillic)
+            $table->string('group')->collation('utf8mb4_unicode_ci');           // Группа (case-insensitive for Cyrillic)
+            $table->string('phone');            // Телефон
+            $table->string('extension');        // Добавочный
             $table->string('cabinet')->nullable(); // Разрешить пустое значение
             $table->string('ip')->nullable();      // Разрешить пустое значение
             $table->string('file_id');

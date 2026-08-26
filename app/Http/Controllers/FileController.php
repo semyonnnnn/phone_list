@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FileUploadRequest;
-use App\Models\Phone;
 use Illuminate\Support\Facades\Http;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\SimpleType\TblWidth;
+////////////////////////////////
+use App\Models\Phone;
 
 class FileController extends Controller
 {
@@ -70,5 +74,40 @@ class FileController extends Controller
         }
 
         return redirect()->back()->with('message', 'Файл успешно обработан и база данных синхронизирована.');
+    }
+
+    public function download()
+    {
+        // 1. Fetch all phone records
+        $phones = Phone::all()->map(function ($phone) {
+            return [
+                'group'     => $phone->group,
+                'person'    => $phone->person,
+                'extension' => $phone->extension,
+                'phone'     => $phone->phone,
+                'cabinet'   => $phone->cabinet ?? '',
+                'ip'        => $phone->ip ?? '',
+            ];
+        });
+
+        // 2. Send the records to your Python microservice endpoint
+        $response = Http::timeout(30)->post('http://10.166.20.85:5000/api/download', [
+            'phones' => $phones->toArray()
+        ]);
+
+        // 3. Throw an exception if Python fails, passing along the error details
+        if (!$response->successful()) {
+            $errorDetail = $response->json('detail') ?? $response->body();
+            throw new \Exception("Python generation failed: " . $errorDetail);
+        }
+
+        // 4. Stream the returned Word document back to the browser for download
+        $fileName = 'phone_directory.docx';
+
+        return response()->streamDownload(function () use ($response) {
+            echo $response->body();
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ]);
     }
 }

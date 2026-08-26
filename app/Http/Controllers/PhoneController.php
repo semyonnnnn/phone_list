@@ -12,21 +12,44 @@ use App\Models\Phone;
 class PhoneController extends Controller
 {
     /**
-     * Display the main view with phone records and auth data.
+     * Display the main view with paginated phone records, search, and auth data.
      */
     public function index(Request $request)
     {
         $userId = Auth::id();
+        $search = $request->input('search');
+        $departmentFilter = $request->input('department');
+        $perPage = 15;
 
-        // Fetch all phone records and group them by the 'group' column
-        $phones = Phone::all();
+        $totalDatabaseCount = Phone::count();
 
-        $departments = $phones->groupBy('group')->map(function ($items, $groupName) {
+        $query = Phone::query();
+
+        if ($search) {
+            $searchTerm = '%' . mb_strtolower(trim($search), 'UTF-8') . '%';
+
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where(DB::raw('LOWER(person)'), 'like', $searchTerm)
+                    ->orWhere(DB::raw('LOWER(phone)'), 'like', $searchTerm)
+                    ->orWhere(DB::raw('LOWER("group")'), 'like', $searchTerm);
+            });
+        }
+
+        // Filter out the entire department if selected
+        if ($departmentFilter && $departmentFilter !== 'Все отделы') {
+            $query->where('group', $departmentFilter);
+        }
+
+        $paginatedPhones = $query->paginate($perPage)->withQueryString();
+
+        $departments = $paginatedPhones->getCollection()->groupBy('group')->map(function ($items, $groupName) {
             return [
                 'group' => $groupName,
                 'phones' => $items->values()->all(),
             ];
         })->values()->all();
+
+        $allGroups = Phone::select('group')->distinct()->pluck('group')->all();
 
         return Inertia::render('Dashboard/Index', [
             'auth' => [
@@ -34,6 +57,18 @@ class PhoneController extends Controller
                 'is_authenticated' => $userId !== null,
             ],
             'departments' => $departments,
+            'allGroups' => $allGroups,
+            'totalDatabaseCount' => $totalDatabaseCount,
+            'pagination' => [
+                'current_page' => $paginatedPhones->currentPage(),
+                'last_page' => $paginatedPhones->lastPage(),
+                'links' => $paginatedPhones->linkCollection(),
+                'total' => $paginatedPhones->total(),
+            ],
+            'filters' => [
+                'search' => $search,
+                'department' => $departmentFilter,
+            ],
         ]);
     }
 
@@ -44,7 +79,6 @@ class PhoneController extends Controller
     {
         $validated = $request->validated();
 
-        // Wrap updates in a transaction for safety
         DB::transaction(function () use ($validated) {
             foreach ($validated['departments'] as $department) {
                 foreach ($department['phones'] as $phoneData) {

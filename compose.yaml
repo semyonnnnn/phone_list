@@ -29,7 +29,7 @@ services:
     mariadb:
         image: 'mariadb:11'
         ports:
-            - '3307:3306'
+            - '3310:3306' # Host uses 3310, Container runs on its standard 3306 internally
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ROOT_HOST: '%'
@@ -46,14 +46,12 @@ services:
             retries: 3
             timeout: 5s
 
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
+    cloudbeaver:
+        image: dbeaver/cloudbeaver:latest
         ports:
-            - '8081:80'
-        environment:
-            PMA_HOST: mariadb
-            PMA_USER: sail
-            PMA_PASSWORD: password
+            - '8081:8978'
+        volumes:
+            - 'cloudbeaver-data:/opt/cloudbeaver/workspace'
         depends_on:
             - mariadb
         networks:
@@ -79,4 +77,6 @@ networks:
 
 volumes:
     sail-mariadb:
+        driver: local
+    cloudbeaver-data:
         driver: local

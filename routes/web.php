@@ -6,7 +6,7 @@ use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
 
 // Publicly accessible main view
-Route::get('/', [PhoneController::class, 'index'])->name('main');
+Route::get('/', [PhoneController::class, 'index'])->name('phones.index');
 
 // Dedicated Login Routes
 Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');

@@ -26,6 +26,6 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('main', absolute: false));
+        $response->assertRedirect(route('phones.index', absolute: false));
     }
 }
