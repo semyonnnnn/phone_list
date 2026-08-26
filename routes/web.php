@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PhoneController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
 
-// Publicly accessible dashboard view
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// Publicly accessible main view
+Route::get('/', [PhoneController::class, 'index'])->name('main');
 
 // Dedicated Login Routes
 Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -15,9 +15,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name
 
 // Protected REST API routes for table operations (requires authentication)
 Route::middleware(['auth'])->group(function () {
-    Route::post('/phones', [DashboardController::class, 'store']);
-    Route::put('/phones/{phone}', [DashboardController::class, 'update']);
-    Route::delete('/phones/{phone}', [DashboardController::class, 'destroy']);
+    Route::put('/phones', [PhoneController::class, 'update'])->name('phones.update');
 
     // File Management Routes (both POST, protected by auth)
     Route::post('/files/upload', [FileController::class, 'upload'])->name('files.upload');

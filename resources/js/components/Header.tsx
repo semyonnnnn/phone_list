@@ -1,20 +1,25 @@
 import React, { useState, useRef } from 'react';
 import { Link, router } from '@inertiajs/react';
-import DepartmentDropdown from './DepartmentDropdown';
+import DepartmentDropdown from '../pages/Dashboard/Partials/DepartmentDropdown';
+
+interface DepartmentValue {
+    number: string;
+    name: string;
+}
+
+interface DepartmentOption {
+    label: string;
+    value: DepartmentValue;
+}
 
 interface HeaderProps {
     isAuthenticated: boolean;
+    options?: DepartmentOption[];
 }
 
-export default function Header({ isAuthenticated }: HeaderProps) {
+export default function Header({ isAuthenticated, options = [] }: HeaderProps) {
     const [selectedOption, setSelectedOption] = useState('Все отделы');
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const options = [
-        { label: 'Все отделы', value: '' },
-        { label: 'Руководство', value: 'lead' },
-        { label: '01 - Отдел сводных статистических работ', value: 'dep01' },
-    ];
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -26,7 +31,6 @@ export default function Header({ isAuthenticated }: HeaderProps) {
         router.post(route('files.upload'), formData, {
             forceFormData: true,
             onSuccess: () => {
-                // Clear the input so the same file can be chosen again if needed
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
@@ -71,7 +75,7 @@ export default function Header({ isAuthenticated }: HeaderProps) {
                 <DepartmentDropdown
                     options={options}
                     selectedOption={selectedOption}
-                    onSelect={(opt) => setSelectedOption(opt.label)}
+                    onSelect={(opt: DepartmentOption) => setSelectedOption(opt.label)}
                 />
             </div>
 

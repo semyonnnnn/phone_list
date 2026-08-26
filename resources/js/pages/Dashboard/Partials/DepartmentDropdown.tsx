@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+interface DepartmentValue {
+    number: string;
+    name: string;
+}
+
 interface Option {
     label: string;
-    value: string;
+    value: DepartmentValue;
 }
 
 interface DepartmentDropdownProps {
@@ -31,7 +36,7 @@ export default function DepartmentDropdown({
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
-                setSearchQuery(''); // Reset search query on close if nothing selected
+                setSearchQuery('');
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
