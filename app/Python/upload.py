@@ -4,6 +4,32 @@ import io
 
 router = APIRouter()
 
+def clean_and_format_phone(val):
+    val_str = str(val).strip()
+    digits_only = val_str.lstrip("+")
+    
+    # 1. Clean the prefix if it meets your 11-digit rule
+    if len(digits_only) == 11:
+        if val_str.startswith("+7343") or val_str.startswith("7343"):
+            digits_only = digits_only.replace("7343", "", 1)
+        elif val_str.startswith("+73522") or val_str.startswith("73522"):
+            digits_only = digits_only.replace("73522", "", 1)
+            
+    # Re-extract just the clean digits to format them uniformly
+    clean_digits = "".join(filter(str.isdigit, digits_only))
+    
+    # 2. Apply pretty formatting based on length
+    # Example for 6 digits: xx-xx-xx (e.g., 12-34-56)
+    if len(clean_digits) == 6:
+        return f"{clean_digits[0:2]}-{clean_digits[2:4]}-{clean_digits[4:6]}"
+        
+    # Example for 7 digits: xxx-xx-xx (e.g., 123-45-67)
+    elif len(clean_digits) == 7:
+        return f"{clean_digits[0:3]}-{clean_digits[3:5]}-{clean_digits[5:7]}"
+        
+    # Fallback if it doesn't match standard expected lengths
+    return val_str
+
 @router.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
@@ -25,6 +51,9 @@ async def upload_file(file: UploadFile = File(...)):
         # Clean up data
         df_filtered = df_filtered.dropna(subset=['file_id', 'person'])
         df_filtered = df_filtered.fillna('')
+        
+        # Apply the phone cleaning function
+        df_filtered['phone'] = df_filtered['phone'].apply(clean_and_format_phone)
         
         records = df_filtered.to_dict(orient='records')
         
