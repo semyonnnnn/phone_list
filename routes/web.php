@@ -13,11 +13,12 @@ Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('l
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
+Route::get('/files/download', [FileController::class, 'download'])->name('files.download');
+
 // Protected REST API routes for table operations (requires authentication)
 Route::middleware(['auth'])->group(function () {
     Route::put('/phones', [PhoneController::class, 'update'])->name('phones.update');
 
     // File Management Routes (both POST, protected by auth)
     Route::post('/files/upload', [FileController::class, 'upload'])->name('files.upload');
-    Route::post('/files/download', [FileController::class, 'download'])->name('files.download');
 });

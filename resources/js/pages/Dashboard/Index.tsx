@@ -96,7 +96,7 @@ export default function Index() {
 
     const handleDownload = () => {
         const form = document.createElement('form');
-        form.method = 'POST';
+        form.method = 'GET';
         form.action = route('files.download');
         form.style.display = 'none';
 
