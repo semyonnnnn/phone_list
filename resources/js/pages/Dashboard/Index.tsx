@@ -295,6 +295,14 @@ export default function Index() {
                 </div>
 
                 <div className="relative z-10 flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={handleDownload}
+                        className="text-[1.15rem] px-5 py-2 bg-[#e5e5e5] text-[#000] border border-black cursor-pointer font-bold hover:bg-[#d5d5d5] mr-4"
+                        style={{ fontFamily: '"Courier New", Courier, monospace' }}
+                    >
+                        Скачать
+                    </button>
                     {auth.is_authenticated ? (
                         <>
                             <button
@@ -304,14 +312,6 @@ export default function Index() {
                                 style={{ fontFamily: '"Courier New", Courier, monospace' }}
                             >
                                 Загрузить
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleDownload}
-                                className="text-[1.15rem] px-5 py-2 bg-[#e5e5e5] text-[#000] border border-black cursor-pointer font-bold hover:bg-[#d5d5d5] mr-4"
-                                style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                            >
-                                Скачать
                             </button>
                             <Link
                                 href={route('logout')}
