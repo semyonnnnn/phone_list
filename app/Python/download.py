@@ -18,6 +18,18 @@ def set_cell_background(cell, fill_hex):
     shd.set(qn('w:fill'), fill_hex)
     tcPr.append(shd)
 
+def set_table_borders(table, size=4, color="000000"):
+    tblPr = table._tbl.tblPr
+    borders = OxmlElement('w:tblBorders')
+    for edge in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+        edge_el = OxmlElement(f'w:{edge}')
+        edge_el.set(qn('w:val'), 'single')
+        edge_el.set(qn('w:sz'), str(size))   # border thickness in eighths of a point
+        edge_el.set(qn('w:space'), '0')
+        edge_el.set(qn('w:color'), color)
+        borders.append(edge_el)
+    tblPr.append(borders)
+
 @router.post("/api/download")
 async def generate_word_document(request: Request):
     try:
@@ -47,6 +59,7 @@ async def generate_word_document(request: Request):
         for group_name, emp_list in departments.items():
             table = doc.add_table(rows=0, cols=5)
             table.alignment = WD_TABLE_ALIGNMENT.CENTER
+            set_table_borders(table)
 
             # 1. Department Header Row (Spanning all 5 columns)
             header_row = table.add_row()
@@ -101,8 +114,6 @@ async def generate_word_document(request: Request):
                     run = p.add_run(str(val))
                     run.font.name = "Arial"
                     run.font.size = Pt(10)
-
-            doc.add_paragraph()
 
         # Save document to an in-memory buffer
         file_stream = io.BytesIO()
