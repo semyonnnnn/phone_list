@@ -51,6 +51,8 @@ class PhoneController extends Controller
 
         $allGroups = Phone::select('group')->distinct()->pluck('group')->all();
 
+        // dd($departments);
+
         return Inertia::render('Dashboard/Index', [
             'auth' => [
                 'user_id' => $userId,
@@ -81,10 +83,20 @@ class PhoneController extends Controller
 
         DB::transaction(function () use ($validated) {
             foreach ($validated['departments'] as $department) {
+                if (empty($department['phones'])) {
+                    continue;
+                }
+
                 foreach ($department['phones'] as $phoneData) {
+                    $isBoss = isset($phoneData['isBoss']) ? (bool) $phoneData['isBoss'] : false;
+                    $isMiniBoss = isset($phoneData['isMiniBoss']) ? (bool) $phoneData['isMiniBoss'] : false;
+
                     Phone::where('id', $phoneData['id'])->update([
                         'cabinet' => $phoneData['cabinet'] ?? null,
                         'ip' => $phoneData['ip'] ?? null,
+                        'isBoss' => $isMiniBoss ? false : $isBoss,
+                        // boss always wins if both flags somehow arrive true
+                        'isMiniBoss' => $isBoss ? false : $isMiniBoss,
                     ]);
                 }
             }

@@ -25,6 +25,8 @@ class PhoneUpdateRequest extends FormRequest
             'departments.*.phones.*.id' => ['required_with:departments.*.phones', 'exists:phones,id'],
             'departments.*.phones.*.cabinet' => ['nullable', 'string', 'max:255'],
             'departments.*.phones.*.ip' => ['nullable', 'string', 'max:255'],
+            'departments.*.phones.*.isBoss' => ['nullable', 'boolean'],
+            'departments.*.phones.*.isMiniBoss' => ['nullable', 'boolean'],
         ];
     }
 
@@ -43,6 +45,8 @@ class PhoneUpdateRequest extends FormRequest
             'departments.*.phones.*.cabinet.max' => 'Поле "Кабинет" не должно превышать 255 символов.',
             'departments.*.phones.*.ip.string' => 'Поле "IP" должно быть строкой.',
             'departments.*.phones.*.ip.max' => 'Поле "IP" не должно превышать 255 символов.',
+            'departments.*.phones.*.isBoss.boolean' => 'Поле "Начальник" должно иметь логическое значение.',
+            'departments.*.phones.*.isMiniBoss.boolean' => 'Поле "Заместитель" должно иметь логическое значение.',
         ];
     }
 }

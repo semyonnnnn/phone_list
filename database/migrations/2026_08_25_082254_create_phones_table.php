@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('cabinet')->nullable(); // Разрешить пустое значение
             $table->string('ip')->nullable();      // Разрешить пустое значение
             $table->string('file_id');
+            $table->boolean('isBoss')->default(false);
+            $table->boolean('isMiniBoss')->default(false);
             $table->timestamps();
         });
     }

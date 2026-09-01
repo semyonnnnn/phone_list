@@ -87,6 +87,8 @@ class FileController extends Controller
                 'phone'     => $phone->phone,
                 'cabinet'   => $phone->cabinet ?? '',
                 'ip'        => $phone->ip ?? '',
+                'isBoss'    => $phone->isBoss,
+                'isMiniBoss' => $phone->isMiniBoss,
             ];
         });
 

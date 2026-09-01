@@ -30,6 +30,20 @@ def set_table_borders(table, size=4, color="000000"):
         borders.append(edge_el)
     tblPr.append(borders)
 
+# Row-level shading for hierarchy distinction
+BOSS_BG = "D9D9D9"       # darker gray for bosses
+MINIBOSS_BG = "F2F2F2"   # lighter gray for miniboses
+REGULAR_BG = None        # no fill for regular employees
+
+def sort_key(emp):
+    """Bosses first (0), miniboses second (1), everyone else last (2).
+    Within each tier, keep original relative order (stable sort)."""
+    if emp.get("isBoss"):
+        return 0
+    if emp.get("isMiniBoss"):
+        return 1
+    return 2
+
 @router.post("/api/download")
 async def generate_word_document(request: Request):
     try:
@@ -66,7 +80,7 @@ async def generate_word_document(request: Request):
             cell_dep = header_row.cells[0]
             for i in range(1, 5):
                 cell_dep.merge(header_row.cells[i])
-            
+
             set_cell_background(cell_dep, "224376")
             p = cell_dep.paragraphs[0]
             p.paragraph_format.space_before = Pt(6)
@@ -84,7 +98,7 @@ async def generate_word_document(request: Request):
                 cell = titles_row.cells[idx]
                 cell.width = col_widths[idx]
                 set_cell_background(cell, "2B579A")
-                
+
                 p = cell.paragraphs[0]
                 p.paragraph_format.space_before = Pt(4)
                 p.paragraph_format.space_after = Pt(4)
@@ -94,8 +108,10 @@ async def generate_word_document(request: Request):
                 run.font.size = Pt(10)
                 run.font.color.rgb = RGBColor(255, 255, 255)
 
-            # 3. Employee Data Rows
-            for emp in emp_list:
+            # 3. Employee Data Rows — bosses first, then miniboses, then the rest
+            sorted_emp_list = sorted(emp_list, key=sort_key)
+
+            for emp in sorted_emp_list:
                 row = table.add_row()
                 row_data = [
                     emp.get("person", ""),
@@ -105,15 +121,28 @@ async def generate_word_document(request: Request):
                     emp.get("ip", "")
                 ]
 
+                if emp.get("isBoss"):
+                    row_bg = BOSS_BG
+                elif emp.get("isMiniBoss"):
+                    row_bg = MINIBOSS_BG
+                else:
+                    row_bg = REGULAR_BG
+
                 for idx, val in enumerate(row_data):
                     cell = row.cells[idx]
                     cell.width = col_widths[idx]
+                    if row_bg:
+                        set_cell_background(cell, row_bg)
+
                     p = cell.paragraphs[0]
                     p.paragraph_format.space_before = Pt(3)
                     p.paragraph_format.space_after = Pt(3)
                     run = p.add_run(str(val))
                     run.font.name = "Arial"
                     run.font.size = Pt(10)
+                    # Slightly emphasize boss/miniboss names for extra clarity
+                    if emp.get("isBoss"):
+                        run.bold = True
 
         # Save document to an in-memory buffer
         file_stream = io.BytesIO()

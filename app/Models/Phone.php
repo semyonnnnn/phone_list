@@ -16,5 +16,7 @@ class Phone extends Model
         'file_id',
         'cabinet',
         'ip',
+        'isBoss',
+        'isMiniBoss',
     ];
 }

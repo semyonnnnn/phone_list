@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Head, usePage, useForm, router, Link } from '@inertiajs/react';
 import DepCard from './Partials/DepCard';
 import DepartmentDropdown from './Partials/DepartmentDropdown';
@@ -11,6 +11,8 @@ export interface PhoneRecord {
     cabinet: string | null;
     ip: string | null;
     file_id: string;
+    is_boss?: boolean;      // Or your exact schema key for 'нач'
+    is_miniboss?: boolean;  // Or your exact schema key for 'зам'
     [key: string]: any;
 }
 
@@ -94,6 +96,40 @@ export default function Index() {
 
     const hasChanges = JSON.stringify(data.departments) !== JSON.stringify(originalDeps);
 
+    // Meticulously evaluate deep diffs for 'нач' (boss) and 'зам' (miniboss) columns
+    const { bossChanged, isMiniBossChanged } = useMemo(() => {
+        let boss = false;
+        let miniBoss = false;
+
+        data.departments.forEach((dep, depIndex) => {
+            const origDep = originalDeps[depIndex];
+            if (!origDep) return;
+
+            dep.phones.forEach((phone, phoneIndex) => {
+                const origPhone = origDep.phones?.[phoneIndex];
+                if (!origPhone) return;
+
+                // Normalize boss flag comparison
+                const currentBoss = Boolean(phone.is_boss ?? phone.nach);
+                const origBoss = Boolean(origPhone.is_boss ?? origPhone.nach);
+                if (currentBoss !== origBoss) {
+                    boss = true;
+                }
+
+                // Normalize zam flag comparison across possible field keys (is_miniboss, zam, is_zam)
+                const currentZam = Boolean(phone.is_miniboss ?? phone.zam ?? phone.is_zam);
+                const origZam = Boolean(origPhone.is_miniboss ?? origPhone.zam ?? origPhone.is_zam);
+                if (currentZam !== origZam) {
+                    miniBoss = true;
+                }
+            });
+        });
+
+        return { bossChanged: boss, isMiniBossChanged: miniBoss };
+    }, [data.departments, originalDeps]);
+
+    const hasLeadershipChanges = bossChanged || isMiniBossChanged;
+
     const handleDownload = () => {
         const form = document.createElement('form');
         form.method = 'GET';
@@ -114,7 +150,7 @@ export default function Index() {
         form.remove();
     };
 
-    const handleFieldChangeByIndices = (depIndex: number, rowIndex: number, field: keyof PhoneRecord, value: string) => {
+    const handleFieldChangeByIndices = (depIndex: number, rowIndex: number, field: keyof PhoneRecord, value: string | boolean) => {
         const updatedDeps = [...data.departments];
         const updatedPhones = [...updatedDeps[depIndex].phones];
         updatedPhones[rowIndex] = {
@@ -167,11 +203,9 @@ export default function Index() {
     ];
 
     const filteredDepartments = data.departments;
-
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
     const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');
 
-    // Translate pagination labels into Russian
     const translatePaginationLabel = (label: string) => {
         if (label.includes('Previous') || label.includes('&laquo;')) {
             return '« Назад';
@@ -182,7 +216,6 @@ export default function Index() {
         return label;
     };
 
-    // Reusable pagination component with slightly brighter backgrounds
     const renderPagination = () => {
         if (!pagination || pagination.last_page <= 1) return null;
 
@@ -295,6 +328,16 @@ export default function Index() {
                 </div>
 
                 <div className="relative z-10 flex items-center gap-2">
+                    {auth.is_authenticated &&
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
+                            style={{ fontFamily: '"Courier New", Courier, monospace' }}
+                        >
+                            Загрузить
+                        </button>
+                    }
                     <button
                         type="button"
                         onClick={handleDownload}
@@ -303,31 +346,20 @@ export default function Index() {
                     >
                         Скачать
                     </button>
-                    {auth.is_authenticated ? (
-                        <>
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
-                                style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                            >
-                                Загрузить
-                            </button>
-                            <Link
-                                href={route('logout')}
-                                method="post"
-                                as="button"
-                                className="inline-block text-[1.15rem] px-7 py-2 bg-[#333] text-white border border-black cursor-pointer font-bold hover:bg-[#444] transition-colors text-center no-underline"
-                                style={{
-                                    fontFamily: '"Courier New", Courier, monospace',
-                                    clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))'
-                                }}
-                            >
-                                Выйти
-                            </Link>
-                        </>
-                    ) : (
-                        <Link
+                    {auth.is_authenticated ?
+                        (<Link
+                            href={route('logout')}
+                            method="post"
+                            as="button"
+                            className="inline-block text-[1.15rem] px-7 py-2 bg-[#333] text-white border border-black cursor-pointer font-bold hover:bg-[#444] transition-colors text-center no-underline"
+                            style={{
+                                fontFamily: '"Courier New", Courier, monospace',
+                                clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))'
+                            }}
+                        >
+                            Выйти
+                        </Link>) :
+                        (<Link
                             href={route('login')}
                             className="inline-block text-[1.15rem] px-7 py-2 bg-black text-[#f5f5f5] cursor-pointer font-bold hover:bg-[#222] transition-colors text-center no-underline"
                             style={{
@@ -336,8 +368,7 @@ export default function Index() {
                             }}
                         >
                             Войти
-                        </Link>
-                    )}
+                        </Link>)}
                 </div>
             </div>
 
@@ -362,7 +393,6 @@ export default function Index() {
                     </div>
                 ) : (
                     <>
-                        {/* Top Pagination */}
                         {renderPagination()}
 
                         <div className="space-y-8">
@@ -370,6 +400,8 @@ export default function Index() {
                                 const realDepIndex = data.departments.findIndex(d => d.group === dep.group);
                                 return (
                                     <DepCard
+                                        bossChanged={bossChanged}
+                                        isMiniBossChanged={isMiniBossChanged}
                                         key={realDepIndex >= 0 ? realDepIndex : dep.group}
                                         dep={dep}
                                         depIndex={realDepIndex >= 0 ? realDepIndex : 0}
@@ -380,7 +412,6 @@ export default function Index() {
                             })}
                         </div>
 
-                        {/* Bottom Pagination */}
                         <div className="mt-8">
                             {renderPagination()}
                         </div>
@@ -408,7 +439,7 @@ export default function Index() {
                             type="button"
                             onClick={handleSave}
                             disabled={processing}
-                            className="bg-white hover:bg-[#e0e0e0] text-black font-bold px-4 py-2 text-[1rem] border border-white transition-colors cursor-pointer disabled:opacity-50"
+                            className="bg-white hover:bg-[#e0e0e0] text-black font-bold px-4 py-2 text-[1rem] border border-white transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
                         >
                             {processing ? 'Сохранение...' : 'Сохранить'}
                         </button>
