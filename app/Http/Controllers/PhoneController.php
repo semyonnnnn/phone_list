@@ -17,8 +17,10 @@ class PhoneController extends Controller
     public function index(Request $request)
     {
         $userId = Auth::id();
+
         $search = $request->input('search');
         $departmentFilter = $request->input('department');
+
         $perPage = 15;
 
         $totalDatabaseCount = Phone::count();
@@ -29,44 +31,119 @@ class PhoneController extends Controller
             $searchTerm = '%' . mb_strtolower(trim($search), 'UTF-8') . '%';
 
             $query->where(function ($q) use ($searchTerm) {
-                $q->where(DB::raw('LOWER(person)'), 'like', $searchTerm)
-                    ->orWhere(DB::raw('LOWER(phone)'), 'like', $searchTerm)
-                    ->orWhere(DB::raw('LOWER("group")'), 'like', $searchTerm);
+                $q->whereRaw('LOWER(person) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(`group`) LIKE ?', [$searchTerm]);
             });
         }
 
-        // Filter out the entire department if selected
-        if ($departmentFilter && $departmentFilter !== 'Все отделы') {
-            $query->where('group', $departmentFilter);
+        // Filter department
+        // Search takes priority over department filter
+        if ($search) {
+            $searchTerm = '%' . mb_strtolower(trim($search), 'UTF-8') . '%';
+
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereRaw('LOWER(person) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(`group`) LIKE ?', [$searchTerm]);
+            });
+        } elseif ($departmentFilter && $departmentFilter !== 'Все отделы') {
+            $query->whereRaw(
+                'LOWER(TRIM(`group`)) = LOWER(TRIM(?))',
+                [$departmentFilter]
+            );
         }
 
-        $paginatedPhones = $query->paginate($perPage)->withQueryString();
+        /*
+     * Руководство always comes first.
+     *
+     * LOWER(TRIM()) means all of these match:
+     *
+     * Руководство
+     * руководство
+     * РУКОВОДСТВО
+     *  Руководство
+     * Руководство
+     */
+        $query->orderByRaw(
+            'CASE
+            WHEN LOWER(TRIM(`group`)) = ? THEN 0
+            ELSE 1
+        END',
+            ['руководство']
+        );
 
-        $departments = $paginatedPhones->getCollection()->groupBy('group')->map(function ($items, $groupName) {
-            return [
-                'group' => $groupName,
-                'phones' => $items->values()->all(),
-            ];
-        })->values()->all();
+        // Then alphabetically sort everything AFTER Руководство
+        $query->orderByRaw('LOWER(TRIM(`group`)) ASC');
 
-        $allGroups = Phone::select('group')->distinct()->pluck('group')->all();
+        $paginatedPhones = $query
+            ->paginate($perPage)
+            ->withQueryString();
 
-        // dd($departments);
+        /*
+     * Build departments from the already ordered collection.
+     */
+        $departments = $paginatedPhones
+            ->getCollection()
+            ->groupBy('group')
+            ->map(function ($items, $groupName) {
+                return [
+                    'group' => $groupName,
+                    'phones' => $items->values()->all(),
+                ];
+            })
+            ->values();
+
+        /*
+     * Final PHP-side guarantee:
+     * Руководство = 0
+     * everything else = 1
+     */
+        $departments = $departments
+            ->sortBy(function ($department) {
+                return mb_strtolower(trim($department['group']), 'UTF-8') === 'руководство'
+                    ? 0
+                    : 1;
+            })
+            ->values()
+            ->all();
+
+        /*
+     * Department dropdown/list.
+     * This was previously a separate unordered query.
+     */
+        $allGroups = Phone::select('group')
+            ->distinct()
+            ->orderByRaw(
+                'CASE
+                WHEN LOWER(TRIM(`group`)) = ? THEN 0
+                ELSE 1
+            END',
+                ['руководство']
+            )
+            ->orderByRaw('LOWER(TRIM(`group`)) ASC')
+            ->pluck('group')
+            ->all();
 
         return Inertia::render('Dashboard/Index', [
             'auth' => [
                 'user_id' => $userId,
                 'is_authenticated' => $userId !== null,
             ],
+
             'departments' => $departments,
+
             'allGroups' => $allGroups,
+
             'totalDatabaseCount' => $totalDatabaseCount,
+
             'pagination' => [
                 'current_page' => $paginatedPhones->currentPage(),
                 'last_page' => $paginatedPhones->lastPage(),
                 'links' => $paginatedPhones->linkCollection(),
                 'total' => $paginatedPhones->total(),
             ],
+
             'filters' => [
                 'search' => $search,
                 'department' => $departmentFilter,

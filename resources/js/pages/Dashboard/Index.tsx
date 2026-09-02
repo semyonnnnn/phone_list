@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Head, usePage, useForm, router, Link } from '@inertiajs/react';
 import DepCard from './Partials/DepCard';
 import DepartmentDropdown from './Partials/DepartmentDropdown';
+import { PopUp } from './Partials/PopUp';
 
 export interface PhoneRecord {
     id?: number;
@@ -33,31 +34,110 @@ interface PaginationLink {
 }
 
 interface PageProps {
-    auth: { is_authenticated: boolean; user_id?: number | null };
-    departments?: Array<{ group: string; phones: PhoneRecord[] }>;
+    auth: {
+        is_authenticated: boolean;
+        user_id?: number | null;
+    };
+
+    departments?: Array<{
+        group: string;
+        phones: PhoneRecord[];
+    }>;
+
+    flash?: {
+        success?: {
+            message: string;
+            id: number;
+        };
+        error?: string;
+    };
+
     allGroups?: string[];
     totalDatabaseCount?: number;
+
     pagination?: {
         current_page: number;
         last_page: number;
         links: PaginationLink[];
         total: number;
     };
+
     filters?: {
         search?: string;
         department?: string;
     };
+
     [key: string]: any;
 }
 
 export default function Index() {
-    const { auth, departments, allGroups, totalDatabaseCount, pagination, filters } = usePage().props as unknown as PageProps;
+    const { auth, departments, allGroups, totalDatabaseCount, pagination, filters, flash } = usePage().props as unknown as PageProps;
 
     const initialDeps = departments && departments.length > 0 ? departments : [];
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
     const [selectedOption, setSelectedOption] = useState(filters?.department || 'Все отделы');
     const [searchQuery, setSearchQuery] = useState(filters?.search || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [showSuccess, setShowSuccess] = useState(false);
+    const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const popupStartedAtRef = useRef<number>(0);
+    const popupRemainingRef = useRef(4000);
+
+    useEffect(() => {
+        if (flash?.success) {
+            setShowSuccess(true);
+        }
+    }, [flash?.success]);
+
+    useEffect(() => {
+        if (!flash?.success) return;
+
+        setShowSuccess(true);
+
+        popupRemainingRef.current = 4000;
+        popupStartedAtRef.current = Date.now();
+
+        popupTimerRef.current = setTimeout(() => {
+            setShowSuccess(false);
+            popupTimerRef.current = null;
+        }, popupRemainingRef.current);
+
+        return () => {
+            if (popupTimerRef.current) {
+                clearTimeout(popupTimerRef.current);
+                popupTimerRef.current = null;
+            }
+        };
+    }, [flash?.success]);
+
+    const pausePopupTimer = () => {
+        if (!popupTimerRef.current) return;
+
+        clearTimeout(popupTimerRef.current);
+        popupTimerRef.current = null;
+
+        const elapsed = Date.now() - popupStartedAtRef.current;
+
+        popupRemainingRef.current = Math.max(
+            0,
+            popupRemainingRef.current - elapsed
+        );
+    };
+
+    const resumePopupTimer = () => {
+        if (popupRemainingRef.current <= 0) {
+            setShowSuccess(false);
+            return;
+        }
+
+        popupStartedAtRef.current = Date.now();
+
+        popupTimerRef.current = setTimeout(() => {
+            setShowSuccess(false);
+            popupTimerRef.current = null;
+        }, popupRemainingRef.current);
+    };
 
     const { data, setData, put, processing, errors, clearErrors } = useForm({
         departments: initialDeps,
@@ -342,14 +422,27 @@ export default function Index() {
                 />
 
                 <div className="relative z-10 flex items-center gap-5">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="text-[1.15rem] p-2 border-0 border-b border-[#999] w-[300px] outline-none bg-transparent focus:border-[#000]"
-                        style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                        placeholder="Поиск по ФИО / телефону..."
-                    />
+                    <div className="relative w-[300px]">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="text-[1.15rem] p-2 pr-9 border-0 border-b border-[#999] w-full outline-none bg-transparent focus:border-[#000]"
+                            style={{ fontFamily: '"Courier New", Courier, monospace' }}
+                            placeholder="Поиск по ФИО / телефону..."
+                        />
+
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 border border-[#555] bg-transparent text-[#222] flex items-center justify-center text-[1rem] leading-none cursor-pointer hover:bg-[#222] hover:text-white transition-colors"
+                                aria-label="Очистить поиск"
+                            >
+                                ×
+                            </button>
+                        )}
+                    </div>
 
                     <DepartmentDropdown
                         options={dropdownOptions}
@@ -480,6 +573,16 @@ export default function Index() {
                         </button>
                     </div>
                 </div>
+            )}
+
+            {showSuccess && flash?.success && (
+                <PopUp
+                    key={flash.success.id}
+                    message={flash.success.message}
+                    handleClick={() => setShowSuccess(false)}
+                    onMouseEnter={pausePopupTimer}
+                    onMouseLeave={resumePopupTimer}
+                />
             )}
         </div>
     );

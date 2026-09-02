@@ -71,7 +71,7 @@ class FileController extends Controller
             }
         }
 
-        return redirect()->back()->with('message', 'Файл успешно обработан и база данных синхронизирована.');
+        return redirect()->back()->with('success', 'Файл успешно обработан и база данных синхронизирована.');
     }
 
     public function download()
