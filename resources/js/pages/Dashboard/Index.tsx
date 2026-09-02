@@ -84,7 +84,10 @@ export default function Index() {
                 ...dep,
                 phones: dep.phones.map((phone, currentRowIndex) => ({
                     ...phone,
-                    is_boss: currentRowIndex === targetRowIndex,
+
+                    // IMPORTANT:
+                    // This is the field Laravel actually receives.
+                    isBoss: currentRowIndex === targetRowIndex,
                 })),
             };
         });

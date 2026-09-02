@@ -81,6 +81,8 @@ class PhoneController extends Controller
     {
         $validated = $request->validated();
 
+        // dd($validated);
+
         DB::transaction(function () use ($validated) {
             foreach ($validated['departments'] as $department) {
                 if (empty($department['phones'])) {
