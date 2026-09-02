@@ -11,8 +11,8 @@ export interface PhoneRecord {
     cabinet: string | null;
     ip: string | null;
     file_id: string;
-    is_boss?: boolean;      // Or your exact schema key for 'нач'
-    is_miniboss?: boolean;  // Or your exact schema key for 'зам'
+    is_boss?: boolean;
+    is_miniboss?: boolean;
     [key: string]: any;
 }
 
@@ -59,9 +59,10 @@ export default function Index() {
     const [searchQuery, setSearchQuery] = useState(filters?.search || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { data, setData, processing } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm({
         departments: initialDeps,
     });
+    const errorBag = errors as unknown as Record<string, string>;
 
     useEffect(() => {
         if (departments) {
@@ -69,6 +70,27 @@ export default function Index() {
             setOriginalDeps(JSON.parse(JSON.stringify(departments)));
         }
     }, [departments]);
+
+    const handleBossChange = (
+        depIndex: number,
+        targetRowIndex: number
+    ) => {
+        const updatedDeps = data.departments.map((dep, currentDepIndex) => {
+            if (currentDepIndex !== depIndex) {
+                return dep;
+            }
+
+            return {
+                ...dep,
+                phones: dep.phones.map((phone, currentRowIndex) => ({
+                    ...phone,
+                    is_boss: currentRowIndex === targetRowIndex,
+                })),
+            };
+        });
+
+        setData('departments', updatedDeps);
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -96,7 +118,6 @@ export default function Index() {
 
     const hasChanges = JSON.stringify(data.departments) !== JSON.stringify(originalDeps);
 
-    // Meticulously evaluate deep diffs for 'нач' (boss) and 'зам' (miniboss) columns
     const { bossChanged, isMiniBossChanged } = useMemo(() => {
         let boss = false;
         let miniBoss = false;
@@ -109,14 +130,12 @@ export default function Index() {
                 const origPhone = origDep.phones?.[phoneIndex];
                 if (!origPhone) return;
 
-                // Normalize boss flag comparison
                 const currentBoss = Boolean(phone.is_boss ?? phone.nach);
                 const origBoss = Boolean(origPhone.is_boss ?? origPhone.nach);
                 if (currentBoss !== origBoss) {
                     boss = true;
                 }
 
-                // Normalize zam flag comparison across possible field keys (is_miniboss, zam, is_zam)
                 const currentZam = Boolean(phone.is_miniboss ?? phone.zam ?? phone.is_zam);
                 const origZam = Boolean(origPhone.is_miniboss ?? origPhone.zam ?? origPhone.is_zam);
                 if (currentZam !== origZam) {
@@ -162,11 +181,21 @@ export default function Index() {
             phones: updatedPhones,
         };
         setData('departments', updatedDeps);
+
+        // Clear the stale server error for this exact field the moment the
+        // user edits it again, so an old red message doesn't linger under a
+        // row they've already fixed.
+        const errorKey = `departments.${depIndex}.phones.${rowIndex}.${String(field)}`;
+        const errorBag = errors as Record<string, string>;
+        if (errorBag[errorKey]) {
+            clearErrors(errorKey as any);
+        }
     };
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        router.put(route('phones.update'), data, {
+        put(route('phones.update'), {
+            preserveScroll: true,
             onSuccess: () => {
                 setOriginalDeps(JSON.parse(JSON.stringify(data.departments)));
             },
@@ -175,6 +204,7 @@ export default function Index() {
 
     const handleCancel = () => {
         setData('departments', JSON.parse(JSON.stringify(originalDeps)));
+        clearErrors();
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -335,7 +365,7 @@ export default function Index() {
                             className="text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
                             style={{ fontFamily: '"Courier New", Courier, monospace' }}
                         >
-                            Загрузить
+                            ВАТС
                         </button>
                     }
                     <button
@@ -407,6 +437,8 @@ export default function Index() {
                                         depIndex={realDepIndex >= 0 ? realDepIndex : 0}
                                         isAuthenticated={auth.is_authenticated}
                                         onFieldChange={handleFieldChangeByIndices}
+                                        onBossChange={handleBossChange}
+                                        errors={errors}
                                     />
                                 );
                             })}

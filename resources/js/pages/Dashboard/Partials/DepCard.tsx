@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconUserStar, IconUser, IconPencil, IconCheck } from '@tabler/icons-react';
+import { IconUserCheck, IconUser, IconPencil, IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 
 interface PhoneRecord {
     id?: number;
@@ -26,24 +26,47 @@ interface DepCardProps {
     dep: Department;
     depIndex: number;
     isAuthenticated: boolean;
-    onFieldChange: (depIndex: number, rowIndex: number, field: keyof PhoneRecord, value: string | boolean) => void;
+    onFieldChange: (
+        depIndex: number,
+        rowIndex: number,
+        field: keyof PhoneRecord,
+        value: string | boolean
+    ) => void;
+    onBossChange: (
+        depIndex: number,
+        targetRowIndex: number
+    ) => void;
     onEditBoss?: (depIndex: number) => void;
     onEditIsMiniBoss?: (depIndex: number) => void;
     bossChanged: boolean;
     isMiniBossChanged: boolean;
+    errors?: Record<string, string>;
 }
 
 const isTruthy = (v: any) => v === true || v === 'true' || v === 1 || v === '1';
+
+const getBossField = (row: PhoneRecord): keyof PhoneRecord => {
+    if (row && ('is_boss' in row || row.is_boss !== undefined)) return 'is_boss';
+    return 'isBoss';
+};
+
+const getMiniBossField = (row: PhoneRecord): keyof PhoneRecord => {
+    if (row && ('is_miniboss' in row || row.is_miniboss !== undefined)) return 'is_miniboss';
+    if (row && ('is_isMiniBoss' in row || row.is_isMiniBoss !== undefined)) return 'is_isMiniBoss';
+    return 'isMiniBoss';
+};
 
 export default function DepCard({
     dep,
     depIndex,
     isAuthenticated,
     onFieldChange,
+    onBossChange,
     onEditBoss,
     onEditIsMiniBoss,
     bossChanged,
     isMiniBossChanged,
+    errors,
 }: DepCardProps) {
     const phones = dep.phones || [];
     const [activeColumn, setActiveColumn] = React.useState<'isBoss' | 'isMiniBoss' | null>(null);
@@ -51,36 +74,55 @@ export default function DepCard({
     const isBossChecked = (rowIndex: number) => {
         const row = phones[rowIndex];
         if (!row) return false;
-        return isTruthy(row.isBoss ?? row.is_boss);
+        const field = getBossField(row);
+        return isTruthy(row[field] ?? row.isBoss ?? row.is_boss);
     };
 
     const isMiniBossChecked = (rowIndex: number) => {
         const row = phones[rowIndex];
         if (!row) return false;
-        return isTruthy(row.isMiniBoss ?? row.is_isMiniBoss ?? row.is_miniboss);
+        const field = getMiniBossField(row);
+        return isTruthy(row[field] ?? row.isMiniBoss ?? row.is_miniboss ?? row.is_isMiniBoss);
     };
 
-    // Only block *turning a flag on* when it would create a conflict — never
-    // block turning an already-set flag off. Otherwise a row stuck in an
-    // illegal both-true state (e.g. legacy data from before this guard
-    // existed) would have both checkboxes permanently locked with no way to
-    // fix it from the UI.
     const isBossPickDisabled = (rowIndex: number) =>
         !isBossChecked(rowIndex) && isMiniBossChecked(rowIndex);
     const isMiniBossPickDisabled = (rowIndex: number) =>
         !isMiniBossChecked(rowIndex) && isBossChecked(rowIndex);
 
+    const bossServerError = (rowIndex: number) => {
+        const row = phones[rowIndex];
+        if (!row) return undefined;
+        const field = getBossField(row) as string;
+        return errors?.[`departments.${depIndex}.phones.${rowIndex}.${field}`] ||
+            errors?.[`departments.${depIndex}.phones.${rowIndex}.isBoss`] ||
+            errors?.[`departments.${depIndex}.phones.${rowIndex}.is_boss`];
+    };
+
+    const miniBossServerError = (rowIndex: number) => {
+        const row = phones[rowIndex];
+        if (!row) return undefined;
+        const field = getMiniBossField(row) as string;
+        return errors?.[`departments.${depIndex}.phones.${rowIndex}.${field}`] ||
+            errors?.[`departments.${depIndex}.phones.${rowIndex}.isMiniBoss`] ||
+            errors?.[`departments.${depIndex}.phones.${rowIndex}.is_miniboss`] ||
+            errors?.[`departments.${depIndex}.phones.${rowIndex}.is_isMiniBoss`];
+    };
+
+    const hasServerError = (rowIndex: number) =>
+        Boolean(bossServerError(rowIndex) || miniBossServerError(rowIndex));
+
     const sortedPhonesWithIndices = React.useMemo(() => {
         return phones
             .map((row, originalIndex) => ({ row, originalIndex }))
             .sort((a, b) => {
-                const aBoss = isTruthy(a.row.isBoss ?? a.row.is_boss);
-                const bBoss = isTruthy(b.row.isBoss ?? b.row.is_boss);
+                const aBoss = isTruthy(a.row[getBossField(a.row)] ?? a.row.isBoss ?? a.row.is_boss);
+                const bBoss = isTruthy(b.row[getBossField(b.row)] ?? b.row.isBoss ?? b.row.is_boss);
                 if (aBoss && !bBoss) return -1;
                 if (!aBoss && bBoss) return 1;
 
-                const aMini = isTruthy(a.row.isMiniBoss ?? a.row.is_isMiniBoss ?? a.row.is_miniboss);
-                const bMini = isTruthy(b.row.isMiniBoss ?? b.row.is_isMiniBoss ?? b.row.is_miniboss);
+                const aMini = isTruthy(a.row[getMiniBossField(a.row)] ?? a.row.isMiniBoss ?? a.row.is_miniboss);
+                const bMini = isTruthy(b.row[getMiniBossField(b.row)] ?? b.row.isMiniBoss ?? b.row.is_miniboss);
                 if (aMini && !bMini) return -1;
                 if (!aMini && bMini) return 1;
 
@@ -102,27 +144,35 @@ export default function DepCard({
 
     const handleBossRadioChange = (targetOriginalIndex: number) => {
         if (!isAuthenticated) return;
+
         if (isBossPickDisabled(targetOriginalIndex)) return;
 
-        const currentlyBoss = isBossChecked(targetOriginalIndex);
+        const targetRow = phones[targetOriginalIndex];
+        if (!targetRow) return;
 
-        phones.forEach((_, i) => {
-            if (isBossChecked(i)) {
-                onFieldChange(depIndex, i, 'isBoss', false);
-            }
-        });
+        const bossField = getBossField(targetRow);
 
-        if (!currentlyBoss) {
-            onFieldChange(depIndex, targetOriginalIndex, 'isBoss', true);
+        // True radio behavior:
+        // clicking the selected boss does nothing
+        if (isTruthy(targetRow[bossField])) {
+            return;
         }
+
+        // Let the parent update ALL rows in one state update
+        onBossChange(depIndex, targetOriginalIndex);
     };
 
     const handleMiniBossCheckboxToggle = (targetOriginalIndex: number) => {
         if (!isAuthenticated) return;
         if (isMiniBossPickDisabled(targetOriginalIndex)) return;
 
-        const currentlyMiniBoss = isMiniBossChecked(targetOriginalIndex);
-        onFieldChange(depIndex, targetOriginalIndex, 'isMiniBoss', !currentlyMiniBoss);
+        const targetRow = phones[targetOriginalIndex];
+        if (!targetRow) return;
+
+        const miniBossField = getMiniBossField(targetRow);
+        const currentlyMiniBoss = isTruthy(targetRow[miniBossField]);
+
+        onFieldChange(depIndex, targetOriginalIndex, miniBossField, !currentlyMiniBoss);
     };
 
     const maxNameLen = Math.max(5, ...phones.map((r) => (r.person || '').length)) + 6;
@@ -136,10 +186,6 @@ export default function DepCard({
         borderRadius: 0,
     } as const;
 
-    // Thin white frame for the data columns (phone / extension / cabinet / ip)
-    // on both boss and mini-boss rows. FIO's own left edge is deliberately left
-    // out of this helper — it keeps using leftAccentClass below (black for boss,
-    // dark gray for mini-boss), just with a thin white bottom edge added.
     const rowCellBorder = (active: boolean) => (active ? 'border-b border-l border-r border-white' : '');
 
     return (
@@ -169,7 +215,7 @@ export default function DepCard({
                                     className={buttonBaseClass}
                                     style={buttonStyle}
                                 >
-                                    <IconUserStar size={16} stroke={2} aria-hidden="true" />
+                                    <IconUserCheck size={16} stroke={2} aria-hidden="true" />
                                     нач
                                     <IconPencil size={14} stroke={2} aria-hidden="true" />
                                 </button>
@@ -244,8 +290,10 @@ export default function DepCard({
                                 const anyBossActive = bossActive || miniBossActive;
                                 const bossPickDisabled = isBossPickDisabled(originalIndex);
                                 const miniBossPickDisabled = isMiniBossPickDisabled(originalIndex);
+                                const bossErrMsg = bossServerError(originalIndex);
+                                const miniBossErrMsg = miniBossServerError(originalIndex);
+                                const rowHasServerError = hasServerError(originalIndex);
 
-                                // Tactical monochromatic hierarchy
                                 let rowBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
                                 let leftAccentClass = 'border-l-4 border-l-transparent';
 
@@ -258,14 +306,18 @@ export default function DepCard({
                                     rowBg += ' hover:bg-black/10';
                                 }
 
+                                if (rowHasServerError) {
+                                    rowBg += ' outline outline-red-600 -outline-offset-2';
+                                }
+
                                 return (
                                     <tr key={row.id ?? originalIndex} className={`${rowBg} transition-colors`}>
                                         {/* Boss Selection Box */}
                                         {activeColumn === 'isBoss' && (
                                             <td
                                                 className={`border-r border-[#ccc] p-3 text-center select-none ${leftAccentClass} ${bossPickDisabled
-                                                        ? 'opacity-40 cursor-not-allowed'
-                                                        : 'cursor-pointer hover:bg-black/10'
+                                                    ? 'opacity-40 cursor-not-allowed'
+                                                    : 'cursor-pointer hover:bg-black/10'
                                                     }`}
                                                 onClick={() => handleBossRadioChange(originalIndex)}
                                                 aria-disabled={bossPickDisabled}
@@ -276,6 +328,12 @@ export default function DepCard({
                                                         <IconCheck size={14} stroke={3} className="text-[#111]" aria-hidden="true" />
                                                     )}
                                                 </div>
+                                                {bossErrMsg && (
+                                                    <div className="mt-1 flex items-center justify-center gap-1 text-red-600 text-[0.65rem] font-bold leading-tight">
+                                                        <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
+                                                        <span>{bossErrMsg}</span>
+                                                    </div>
+                                                )}
                                             </td>
                                         )}
 
@@ -296,11 +354,16 @@ export default function DepCard({
                                                         <IconCheck size={14} stroke={3} className="text-[#111]" aria-hidden="true" />
                                                     )}
                                                 </div>
+                                                {miniBossErrMsg && (
+                                                    <div className="mt-1 flex items-center justify-center gap-1 text-red-600 text-[0.65rem] font-bold leading-tight">
+                                                        <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
+                                                        <span>{miniBossErrMsg}</span>
+                                                    </div>
+                                                )}
                                             </td>
                                         )}
 
-                                        {/* FIO: left edge stays the existing black (boss) / dark-gray (mini-boss)
-                                            accent — untouched — with a thin white bottom edge added on top */}
+                                        {/* FIO */}
                                         <td
                                             className={`border-r border-[#ccc] p-3 whitespace-nowrap overflow-hidden ${!activeColumn ? leftAccentClass : ''
                                                 } ${anyBossActive ? 'border-b border-white' : ''}`}
@@ -325,6 +388,11 @@ export default function DepCard({
                                                     value={row?.person || ''}
                                                 />
                                             </div>
+                                            {rowHasServerError && (
+                                                <div className="mt-1 text-red-600 text-[0.7rem] font-bold">
+                                                    {bossErrMsg || miniBossErrMsg}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className={`border-r border-[#ccc] p-3 ${rowCellBorder(anyBossActive)}`}>
                                             <input

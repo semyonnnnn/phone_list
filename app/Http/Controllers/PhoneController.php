@@ -94,9 +94,8 @@ class PhoneController extends Controller
                     Phone::where('id', $phoneData['id'])->update([
                         'cabinet' => $phoneData['cabinet'] ?? null,
                         'ip' => $phoneData['ip'] ?? null,
-                        'isBoss' => $isMiniBoss ? false : $isBoss,
-                        // boss always wins if both flags somehow arrive true
-                        'isMiniBoss' => $isBoss ? false : $isMiniBoss,
+                        'isBoss' => $isBoss,
+                        'isMiniBoss' => $isMiniBoss,
                     ]);
                 }
             }

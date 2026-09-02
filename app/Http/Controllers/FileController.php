@@ -60,8 +60,6 @@ class FileController extends Controller
                             'person'    => $cleanData['person'],
                             'extension' => $cleanData['extension'],
                             'phone'     => $cleanData['phone'],
-                            'cabinet'   => '',
-                            'ip'        => '',
                         ]
                     );
                 }
