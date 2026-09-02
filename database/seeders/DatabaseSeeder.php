@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Админ',
             'email' => 'ekat@stat.com',
-            'password' => 'Ekaterina.66.ghUTNpI.48&&@3'
+            'password' => 'Ekaterinburg.66.ghUTNpI.48&&@3'
         ]);
     }
 }
