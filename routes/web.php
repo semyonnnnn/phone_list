@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+//////////////////////////////////////////
 use App\Http\Controllers\PhoneController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\FileController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DepartmentController;
 
 // Publicly accessible main view
 Route::get('/', [PhoneController::class, 'index'])->name('phones.index');
@@ -21,4 +23,6 @@ Route::middleware(['auth'])->group(function () {
 
     // File Management Routes (both POST, protected by auth)
     Route::post('/files/upload', [FileController::class, 'upload'])->name('files.upload');
+
+    Route::post('/department/update', [DepartmentController::class, 'update'])->name('department.update');
 });

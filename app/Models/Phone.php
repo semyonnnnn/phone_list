@@ -9,7 +9,6 @@ class Phone extends Model
     protected $table = 'phones';
 
     protected $fillable = [
-        'group',
         'person',
         'extension',
         'phone',
@@ -18,5 +17,6 @@ class Phone extends Model
         'ip',
         'isBoss',
         'isMiniBoss',
+        'department_id',
     ];
 }

@@ -200,9 +200,37 @@ export default function DepCard({
                         background: 'conic-gradient(#000 90deg, #666 90deg 180deg, #000 180deg 270deg, #666 270deg)',
                         backgroundSize: '0.5rem 0.5rem',
                     }}
-                >
-                    <div className="bg-[#f5f5f5] inline-block px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]">
-                        {dep.group}
+                ><div className="bg-[#f5f5f5] inline-block px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]">
+                        {!isAuthenticated ? dep.group : (
+                            // Both children are placed in the same grid cell (row 1, col 1).
+                            // The span is invisible but has the same text and font, so it gives the cell the width of the text.
+                            // The input fills that cell, so it is always exactly as wide as its content.
+                            // Outer flex row: [grid with text] [pencil]. border-b draws the underline under both, as in your screenshot.
+                            <div className="flex items-center gap-2 border-b border-black">
+                                {/* inline-grid: the span and the input share one cell, so the cell is as wide as the text. */}
+                                <div className="inline-grid">
+                                    <span
+                                        aria-hidden="true"
+                                        // invisible (NOT hidden): keeps the width in layout, only hides it visually.
+                                        className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-[1.35rem]"
+                                    >
+                                        {/* trailing space + fallback so an empty input doesn't collapse to zero width */}
+                                        {dep.group || ' '}{' '}
+                                    </span>
+                                    <input
+                                        // w-full fills the cell that the span sized; min-w-0 lets it shrink below the browser default.
+                                        className="col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-[1.35rem] text-inherit p-0"
+                                        type="text"
+                                        value={dep.group}
+                                        onChange={(e) => {
+                                            // Handle value change here
+                                        }}
+                                    />
+                                </div>
+                                {/* shrink-0 so the icon never gets squeezed when the name is long */}
+                                <IconPencil size={27} stroke={2} aria-hidden="true" className="shrink-0" />
+                            </div>
+                        )}
                     </div>
 
                     {isAuthenticated && (

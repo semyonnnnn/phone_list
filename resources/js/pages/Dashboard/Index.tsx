@@ -69,10 +69,15 @@ interface PageProps {
 
     [key: string]: any;
 }
-
-export default function Index() {
-    const { auth, departments, allGroups, totalDatabaseCount, pagination, filters, flash } = usePage().props as unknown as PageProps;
-
+export default function Index({
+    auth,
+    departments,
+    allGroups,
+    totalDatabaseCount,
+    pagination,
+    filters,
+    flash,
+}: PageProps) {
     const initialDeps = departments && departments.length > 0 ? departments : [];
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
     const [selectedOption, setSelectedOption] = useState(filters?.department || 'Все отделы');

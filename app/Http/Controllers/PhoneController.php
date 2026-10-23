@@ -2,128 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PhoneUpdateRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+////////////////////////////////////
+use App\Http\Requests\PhoneUpdateRequest;
 use App\Models\Phone;
+use App\Services\PhoneDirectoryService;
 
 class PhoneController extends Controller
 {
     /**
      * Display the main view with paginated phone records, search, and auth data.
      */
-    public function index(Request $request)
+    // Add to the imports: use App\Services\PhoneDirectoryService;
+
+    public function index(Request $request, PhoneDirectoryService $directory)
     {
         $userId = Auth::id();
-
         $search = $request->input('search');
         $departmentFilter = $request->input('department');
 
-        $perPage = 15;
-
-        $totalDatabaseCount = Phone::count();
-
-        $query = Phone::query();
-
-        if ($search) {
-            $searchTerm = '%' . mb_strtolower(trim($search), 'UTF-8') . '%';
-
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereRaw('LOWER(person) LIKE ?', [$searchTerm])
-                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchTerm])
-                    ->orWhereRaw('LOWER(`group`) LIKE ?', [$searchTerm]);
-            });
-        }
-
-        // Filter department
-        // Search takes priority over department filter
-        if ($search) {
-            $searchTerm = '%' . mb_strtolower(trim($search), 'UTF-8') . '%';
-
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereRaw('LOWER(person) LIKE ?', [$searchTerm])
-                    ->orWhereRaw('LOWER(phone) LIKE ?', [$searchTerm])
-                    ->orWhereRaw('LOWER(`group`) LIKE ?', [$searchTerm]);
-            });
-        } elseif ($departmentFilter && $departmentFilter !== 'Все отделы') {
-            $query->whereRaw(
-                'LOWER(TRIM(`group`)) = LOWER(TRIM(?))',
-                [$departmentFilter]
-            );
-        }
-
-        /*
-     * Руководство always comes first.
-     *
-     * LOWER(TRIM()) means all of these match:
-     *
-     * Руководство
-     * руководство
-     * РУКОВОДСТВО
-     *  Руководство
-     * Руководство
-     */
-        $query->orderByRaw(
-            'CASE
-            WHEN LOWER(TRIM(`group`)) = ? THEN 0
-            ELSE 1
-        END',
-            ['руководство']
-        );
-
-        // Then alphabetically sort everything AFTER Руководство
-        $query->orderByRaw('LOWER(TRIM(`group`)) ASC');
-
-        $paginatedPhones = $query
-            ->paginate($perPage)
-            ->withQueryString();
-
-        /*
-     * Build departments from the already ordered collection.
-     */
-        $departments = $paginatedPhones
-            ->getCollection()
-            ->groupBy('group')
-            ->map(function ($items, $groupName) {
-                return [
-                    'group' => $groupName,
-                    'phones' => $items->values()->all(),
-                ];
-            })
-            ->values();
-
-        /*
-     * Final PHP-side guarantee:
-     * Руководство = 0
-     * everything else = 1
-     */
-        $departments = $departments
-            ->sortBy(function ($department) {
-                return mb_strtolower(trim($department['group']), 'UTF-8') === 'руководство'
-                    ? 0
-                    : 1;
-            })
-            ->values()
-            ->all();
-
-        /*
-     * Department dropdown/list.
-     * This was previously a separate unordered query.
-     */
-        $allGroups = Phone::select('group')
-            ->distinct()
-            ->orderByRaw(
-                'CASE
-                WHEN LOWER(TRIM(`group`)) = ? THEN 0
-                ELSE 1
-            END',
-                ['руководство']
-            )
-            ->orderByRaw('LOWER(TRIM(`group`)) ASC')
-            ->pluck('group')
-            ->all();
+        $page = $directory->getPage($search, $departmentFilter);
 
         return Inertia::render('Dashboard/Index', [
             'auth' => [
@@ -131,18 +32,11 @@ class PhoneController extends Controller
                 'is_authenticated' => $userId !== null,
             ],
 
-            'departments' => $departments,
-
-            'allGroups' => $allGroups,
-
-            'totalDatabaseCount' => $totalDatabaseCount,
-
-            'pagination' => [
-                'current_page' => $paginatedPhones->currentPage(),
-                'last_page' => $paginatedPhones->lastPage(),
-                'links' => $paginatedPhones->linkCollection(),
-                'total' => $paginatedPhones->total(),
-            ],
+            // Listed one by one (not spread) so you can see every prop the page receives.
+            'departments' => $page['departments'],
+            'allGroups' => $page['allGroups'],
+            'totalDatabaseCount' => $page['totalDatabaseCount'],
+            'pagination' => $page['pagination'],
 
             'filters' => [
                 'search' => $search,
