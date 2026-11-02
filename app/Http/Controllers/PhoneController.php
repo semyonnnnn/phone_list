@@ -26,7 +26,7 @@ class PhoneController extends Controller
 
         $page = $directory->getPage($search, $departmentFilter);
 
-        return Inertia::render('Dashboard/Index', [
+        return Inertia::render('phones/index', [
             'auth' => [
                 'user_id' => $userId,
                 'is_authenticated' => $userId !== null,
