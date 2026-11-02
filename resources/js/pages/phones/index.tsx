@@ -40,6 +40,7 @@ export default function Index({
         handleFileChange,
         pausePopupTimer,
         resumePopupTimer,
+        handleGroupNameChange,
     } = usePhoneDirectory(initialDeps, filters, flash, allGroups);
 
     const filteredDepartments = data.departments;
@@ -262,6 +263,7 @@ export default function Index({
                                         onFieldChange={handleFieldChangeByIndices}
                                         onBossChange={handleBossChange}
                                         errors={errors}
+                                        onGroupNameChange={handleGroupNameChange}
                                     />
                                 );
                             })}

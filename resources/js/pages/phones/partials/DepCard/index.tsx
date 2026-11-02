@@ -77,7 +77,7 @@ export default function DepCard({
                                         className="col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-[1.35rem] text-inherit p-0"
                                         type="text"
                                         value={groupName}
-                                        onChange={(e) => setGroupName(e.target.value)}
+                                        onChange={(e) => onGroupNameChange?.(depIndex, e.target.value)}
                                         onKeyDown={handleGroupKeyDown}
                                         onBlur={handleGroupSubmit}
                                     />
@@ -135,12 +135,14 @@ export default function DepCard({
                 <div className="relative overflow-hidden">
                     <div className="absolute inset-0 flex flex-wrap content-center justify-center items-center gap-32 z-0 pointer-events-none select-none -rotate-[30deg] opacity-15">
                         {Array.from({ length: 6 }).map((_, i) => (
-                            <span
-                                key={i}
-                                className="text-[5.5rem] font-black text-[#d6d6d6] uppercase whitespace-nowrap tracking-wider font-mono"
-                            >
-                                {groupName || 'ОТДЕЛ'}
-                            </span>
+                            <div>
+                                <span
+                                    key={i}
+                                    className="text-[5.5rem] font-black text-[#d6d6d6] uppercase whitespace-nowrap tracking-wider font-mono"
+                                >
+                                    {groupName || 'ОТДЕЛ'}
+                                </span>
+                            </div>
                         ))}
                     </div>
 
@@ -289,22 +291,23 @@ export default function DepCard({
                                                 value={row?.extension || ''}
                                             />
                                         </td>
+                                        {/* Cabinet Input */}
                                         <td className={`border-r border-[#ccc] p-3 ${rowCellBorder(anyBossActive)}`}>
-                                            <input
-                                                type="text"
+                                            <DebouncedInput
                                                 readOnly={!isAuthenticated}
-                                                onChange={(e) => onFieldChange(depIndex, originalIndex, 'cabinet', e.target.value)}
+                                                value={row?.cabinet}
+                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'cabinet', val)}
                                                 className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
-                                                value={row?.cabinet ?? ''}
                                             />
                                         </td>
+
+                                        {/* IP Input */}
                                         <td className={`p-3 ${rowCellBorder(anyBossActive)}`}>
-                                            <input
-                                                type="text"
+                                            <DebouncedInput
                                                 readOnly={!isAuthenticated}
-                                                onChange={(e) => onFieldChange(depIndex, originalIndex, 'ip', e.target.value)}
+                                                value={row?.ip}
+                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'ip', val)}
                                                 className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
-                                                value={row?.ip ?? ''}
                                             />
                                         </td>
                                     </tr>
@@ -325,5 +328,56 @@ export default function DepCard({
                 description='description'
             />
         </div>
+    );
+}
+
+import { useState, useEffect } from 'react';
+
+interface LocalInputProps {
+    value: string | null;
+    onChange: (val: string) => void;
+    readOnly?: boolean;
+    className?: string;
+}
+
+
+interface DebouncedInputProps {
+    value: string | null;
+    onChange: (val: string) => void;
+    readOnly?: boolean;
+    className?: string;
+}
+
+export function DebouncedInput({ value, onChange, readOnly, className }: DebouncedInputProps) {
+    const [localValue, setLocalValue] = useState(value ?? '');
+
+    // Keep local state in sync if parent resets (e.g. Cancel button)
+    useEffect(() => {
+        setLocalValue(value ?? '');
+    }, [value]);
+
+    // Debounce the update to parent state
+    useEffect(() => {
+        // Skip if the value hasn't actually changed from the parent prop
+        if (localValue === (value ?? '')) return;
+
+        const timer = setTimeout(() => {
+            onChange(localValue);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [localValue]);
+
+    if (readOnly) {
+        return <input type="text" readOnly className={className} value={value ?? ''} />;
+    }
+
+    return (
+        <input
+            type="text"
+            className={className}
+            value={localValue}
+            onChange={(e) => setLocalValue(e.target.value)} // Instant typing response
+        />
     );
 }

@@ -150,6 +150,8 @@ export function useDepCard(
 
     const maxNameLen = Math.max(5, ...phones.map((r) => (r.person || '').length)) + 6;
 
+
+
     return {
         phones,
         activeColumn,

@@ -130,7 +130,11 @@ export function usePhoneDirectory(
         return () => clearTimeout(timer);
     }, [searchQuery, selectedOption]);
 
-    const hasChanges = JSON.stringify(data.departments) !== JSON.stringify(originalDeps);
+    const hasChanges = useMemo(() => {
+        // Optional: normalize strings/whitespace if needed for strict comparison
+        const normalize = (val: any) => JSON.parse(JSON.stringify(val));
+        return JSON.stringify(normalize(data.departments)) !== JSON.stringify(normalize(originalDeps));
+    }, [data.departments, originalDeps]);
 
     const { bossChanged, isMiniBossChanged } = useMemo(() => {
         let boss = false;
@@ -184,9 +188,13 @@ export function usePhoneDirectory(
     const handleFieldChangeByIndices = (depIndex: number, rowIndex: number, field: keyof PhoneRecord, value: string | boolean) => {
         const updatedDeps = [...data.departments];
         const updatedPhones = [...updatedDeps[depIndex].phones];
+
+        // Normalize empty strings back to null so they match original database state
+        const normalizedValue = typeof value === 'string' && value.trim() === '' ? null : value;
+
         updatedPhones[rowIndex] = {
             ...updatedPhones[rowIndex],
-            [field]: value,
+            [field]: normalizedValue,
         };
         updatedDeps[depIndex] = {
             ...updatedDeps[depIndex],
@@ -240,6 +248,20 @@ export function usePhoneDirectory(
         }))
     ];
 
+    const handleGroupNameChange = (depIndex: number, newGroupName: string) => {
+        const updatedDeps = [...data.departments];
+
+        // Normalize empty strings to null or keep them trimmed depending on your backend
+        const normalizedValue = newGroupName.trim() === '' ? null : newGroupName;
+
+        updatedDeps[depIndex] = {
+            ...updatedDeps[depIndex],
+            group: normalizedValue as any, // or string depending on your types
+        };
+
+        setData('departments', updatedDeps);
+    };
+
     return {
         data,
         searchQuery,
@@ -263,5 +285,6 @@ export function usePhoneDirectory(
         handleFileChange,
         pausePopupTimer,
         resumePopupTimer,
+        handleGroupNameChange,
     };
 }
