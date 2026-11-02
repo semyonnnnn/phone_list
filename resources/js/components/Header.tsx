@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, router } from '@inertiajs/react';
-import DepartmentDropdown from '../pages/phones/Partials/DepartmentDropdown';
+import DepartmentDropdown from '../pages/phones/partials/DepartmentDropdown';
 
 interface DepartmentValue {
     number: string;

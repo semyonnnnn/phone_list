@@ -1,8 +1,8 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import DepCard from './Partials/DepCard';
-import DepartmentDropdown from './Partials/DepartmentDropdown';
-import { PopUp } from './Partials/PopUp';
+import DepCard from './partials/DepCard';
+import DepartmentDropdown from './partials/DepartmentDropdown';
+import { PopUp } from './partials/PopUp';
 import { usePhoneDirectory } from './usePhoneDirectory';
 import { PageProps } from './types';
 
