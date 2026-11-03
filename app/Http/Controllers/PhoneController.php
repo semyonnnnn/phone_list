@@ -48,17 +48,16 @@ class PhoneController extends Controller
     /**
      * Update multiple phone records in bulk using the custom FormRequest.
      */
-    public function update(PhoneUpdateRequest $request)
+
+    // PhoneUpdateRequest
+    public function update(Request $r)
     {
-        $validated = $request->validated();
+        dd($r->all());
+        $validated = $r->validated();
+
+        dd($validated);
 
         DB::transaction(function () use ($validated) {
-
-            /*
-         |--------------------------------------------------------------------------
-         | 1. Collect requested boss selections
-         |--------------------------------------------------------------------------
-         */
 
             $selectedBossIds = collect(
                 $validated['departments']
@@ -72,11 +71,6 @@ class PhoneController extends Controller
                 ->values();
 
 
-            /*
-         |--------------------------------------------------------------------------
-         | 2. Update normal phone fields
-         |--------------------------------------------------------------------------
-         */
 
             foreach ($validated['departments'] as $department) {
 
@@ -93,24 +87,10 @@ class PhoneController extends Controller
                     Phone::where('id', $phoneData['id'])->update([
                         'cabinet' => $phoneData['cabinet'] ?? null,
                         'ip' => $phoneData['ip'] ?? null,
-
-                        /*
-                     * Do NOT blindly update isBoss here.
-                     *
-                     * Boss selection is handled globally below.
-                     */
-
                         'isMiniBoss' => $isMiniBoss,
                     ]);
                 }
             }
-
-
-            /*
-         |--------------------------------------------------------------------------
-         | 3. Process boss selections globally
-         |--------------------------------------------------------------------------
-         */
 
             if ($selectedBossIds->isNotEmpty()) {
 
@@ -124,11 +104,6 @@ class PhoneController extends Controller
 
                 foreach ($selectedBosses as $groupName => $bosses) {
 
-                    /*
-                 * Safety check:
-                 * There must be exactly ONE selected boss per department.
-                 */
-
                     if ($bosses->count() > 1) {
                         throw \Illuminate\Validation\ValidationException::withMessages([
                             'departments' => [
@@ -141,24 +116,10 @@ class PhoneController extends Controller
                     $boss = $bosses->first();
 
 
-                    /*
-                 * Clear EVERY boss in this department.
-                 *
-                 * This includes:
-                 * - hidden search results
-                 * - other pagination pages
-                 * - currently invisible employees
-                 */
-
                     Phone::where('group', $groupName)
                         ->update([
                             'isBoss' => false,
                         ]);
-
-
-                    /*
-                 * Set the newly selected boss.
-                 */
 
                     Phone::where('id', $boss->id)
                         ->update([

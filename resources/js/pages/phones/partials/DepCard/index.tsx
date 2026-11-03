@@ -1,7 +1,6 @@
 import { IconUserCheck, IconUser, IconPencil, IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { DepCardProps } from './types';
 import { useDepCard } from './useDepCard';
-import WarningModal from '@/components/WarningModal';
 
 export default function DepCard({
     dep,
@@ -59,7 +58,7 @@ export default function DepCard({
                 <div
                     className="p-2 text-left relative z-20 flex items-center justify-between"
                     style={{
-                        background: 'conic-gradient(#000 90deg, #666 90deg 180deg, #000 180deg 270deg, #666 270deg)',
+                        background: 'conic-gradient(#000 90deg, #667 90deg 180deg, #000 180deg 270deg, #667 270deg)',
                         backgroundSize: '0.5rem 0.5rem',
                     }}
                 >
@@ -135,7 +134,7 @@ export default function DepCard({
                 <div className="relative overflow-hidden">
                     <div className="absolute inset-0 flex flex-wrap content-center justify-center items-center gap-32 z-0 pointer-events-none select-none -rotate-[30deg] opacity-15">
                         {Array.from({ length: 6 }).map((_, i) => (
-                            <div>
+                            <div key={i}>
                                 <span
                                     key={i}
                                     className="text-[5.5rem] font-black text-[#d6d6d6] uppercase whitespace-nowrap tracking-wider font-mono"
@@ -317,16 +316,6 @@ export default function DepCard({
                     </table>
                 </div>
             </div>
-            <WarningModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onConfirm={() => {
-                    console.log('confirming...')
-                    setIsModalOpen(false);
-                }}
-                title='title'
-                description='description'
-            />
         </div>
     );
 }

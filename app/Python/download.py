@@ -86,7 +86,7 @@ def department_sort_key(item):
     return (1, group_name)
 
 
-@router.post("/api/download")
+@router.post("/files/download")
 async def generate_word_document(request: Request):
     try:
         body = await request.json()

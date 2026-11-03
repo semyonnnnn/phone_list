@@ -42,7 +42,7 @@ export default function Header({ isAuthenticated, options = [] }: HeaderProps) {
         <div
             className="p-5 border border-[#ccc] flex justify-between items-center mb-14 shadow-[6px_6px_0px_rgba(0,0,0,0.4)] relative z-40"
             style={{
-                background: 'conic-gradient(#000 90deg, #666 90deg 180deg, #000 180deg 270deg, #666 270deg)',
+                background: 'conic-gradient(#000 90deg, #667 90deg 180deg, #000 180deg 270deg, #667 270deg)',
                 backgroundSize: '0.5rem 0.5rem',
             }}
         >

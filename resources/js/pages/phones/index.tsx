@@ -15,7 +15,7 @@ export default function Index({
     filters,
     flash,
 }: PageProps) {
-    const initialDeps = departments && departments.length > 0 ? departments : [];
+    const initialDeps = departments;
 
     const {
         data,
@@ -81,7 +81,7 @@ export default function Index({
                             preserveScroll
                             className={`px-3 py-1 border text-[1rem] transition-colors ${link.active
                                 ? 'bg-white text-black font-bold border-white'
-                                : 'bg-[#2d2d2d] text-[#e0e0e0] border-[#666] hover:bg-[#3d3d3d]'
+                                : 'bg-[#2d2d2d] text-[#e0e0e0] border-[#667] hover:bg-[#3d3d3d]'
                                 }`}
                             dangerouslySetInnerHTML={{ __html: translatedLabel }}
                         />
@@ -138,7 +138,7 @@ export default function Index({
             <div
                 className="p-5 border border-[#ccc] flex justify-between items-center mb-14 shadow-[6px_6px_0px_rgba(0,0,0,0.4)] relative z-40"
                 style={{
-                    background: 'conic-gradient(#000 90deg, #666 90deg 180deg, #000 180deg 270deg, #666 270deg)',
+                    background: 'conic-gradient(#000 90deg, #667 90deg 180deg, #000 180deg 270deg, #667 270deg)',
                     backgroundSize: '0.5rem 0.5rem',
                 }}
             >
@@ -288,7 +288,7 @@ export default function Index({
                         <button
                             type="button"
                             onClick={handleCancel}
-                            className="bg-[#555] hover:bg-[#666] text-white px-4 py-2 text-[1rem] border border-white transition-colors cursor-pointer"
+                            className="bg-[#555] hover:bg-[#667] text-white px-4 py-2 text-[1rem] border border-white transition-colors cursor-pointer"
                         >
                             Отмена
                         </button>

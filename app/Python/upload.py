@@ -53,7 +53,7 @@ def resolve_file_id(file_id, login, group, person):
     digest = hashlib.sha1(key.encode("utf-8")).hexdigest()[:12]
     return f"rand_{digest}"
 
-@router.post("/api/upload")
+@router.post("/files/upload")
 async def upload_file(file: UploadFile = File(...)):
     try:
         contents = await file.read()

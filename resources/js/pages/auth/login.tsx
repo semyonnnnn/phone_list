@@ -101,7 +101,7 @@ export default function Login({ status }: LoginProps) {
                         <div
                             className="p-3 text-left relative z-20"
                             style={{
-                                background: 'conic-gradient(#000 90deg, #666 90deg 180deg, #000 180deg 270deg, #666 270deg)',
+                                background: 'conic-gradient(#000 90deg, #667 90deg 180deg, #000 180deg 270deg, #667 270deg)',
                                 backgroundSize: '0.5rem 0.5rem',
                             }}
                         >

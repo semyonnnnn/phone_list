@@ -21,7 +21,7 @@ class PhoneUploadService
             'file',
             file_get_contents($file->getRealPath()),
             $file->getClientOriginalName()
-        )->post('http://10.166.20.85:5000/api/upload');
+        )->post('http://python:5000/files/upload');
 
         // The service throws instead of returning JSON: building an HTTP response is the controller's job.
         // The body goes into the message so the controller can pass it along like before.

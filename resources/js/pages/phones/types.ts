@@ -32,7 +32,7 @@ export interface PageProps {
         is_authenticated: boolean;
         user_id?: number | null;
     };
-    departments?: Array<{
+    departments: Array<{
         group: string;
         phones: PhoneRecord[];
     }>;

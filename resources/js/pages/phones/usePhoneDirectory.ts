@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router } from '@inertiajs/react';
 import { PhoneRecord, PageProps, DepartmentOption } from './types';
 
+const EMPTY_DEPS: PageProps['departments'] = [];
+
 export function usePhoneDirectory(
     initialDeps: Array<{ group: string; phones: PhoneRecord[] }>,
     filters: PageProps['filters'],
@@ -17,6 +19,7 @@ export function usePhoneDirectory(
     const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const popupStartedAtRef = useRef<number>(0);
     const popupRemainingRef = useRef(4000);
+
 
     useEffect(() => {
         if (flash?.success) {

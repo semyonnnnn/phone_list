@@ -49,7 +49,7 @@ export default function DepartmentDropdown({
             {/* Dropdown Menu */}
             {isOpen && (
                 <div
-                    className="absolute left-0 right-0 mt-1 border border-black shadow-[4px_4px_0px_rgba(0,0,0,0.4)] z-50 max-h-[80vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#1c1c1c] [&::-webkit-scrollbar-thumb]:bg-[#666]"
+                    className="absolute left-0 right-0 mt-1 border border-black shadow-[4px_4px_0px_rgba(0,0,0,0.4)] z-50 max-h-[80vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#1c1c1c] [&::-webkit-scrollbar-thumb]:bg-[#667]"
                     style={{
                         background: '#1c1c1c',
                         fontFamily: '"Courier New", Courier, monospace',
@@ -60,7 +60,7 @@ export default function DepartmentDropdown({
                             <div
                                 key={idx}
                                 onClick={() => handleOptionClick(opt)}
-                                className="p-2.5 text-[1.15rem] cursor-pointer border-b border-[#333] last:border-b-0 text-[#f5f5f5] hover:bg-[#666] hover:text-white transition-colors"
+                                className="p-2.5 text-[1.15rem] cursor-pointer border-b border-[#333] last:border-b-0 text-[#f5f5f5] hover:bg-[#667] hover:text-white transition-colors"
                             >
                                 {opt.label}
                             </div>
