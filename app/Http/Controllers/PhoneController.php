@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 ////////////////////////////////////
 use App\Http\Requests\PhoneUpdateRequest;
 use App\Models\Phone;
+use App\Models\Department;
 use App\Services\PhoneDirectoryService;
 
 class PhoneController extends Controller
@@ -50,90 +51,72 @@ class PhoneController extends Controller
      */
 
     // PhoneUpdateRequest
-    public function update(Request $r)
+    public function update(PhoneUpdateRequest $r)
     {
-        dd($r->all());
         $validated = $r->validated();
-
-        dd($validated);
 
         DB::transaction(function () use ($validated) {
 
-            $selectedBossIds = collect(
-                $validated['departments']
-            )
+            // Ids of every phone marked as boss in the payload (at most one per
+            // department; PhoneUpdateRequest::withValidator() already rejects more).
+            $selectedBossIds = collect($validated['departments'])
                 ->pluck('phones')
                 ->flatten(1)
-                ->filter(function ($phoneData) {
-                    return !empty($phoneData['isBoss']);
-                })
+                ->filter(fn($phoneData) => !empty($phoneData['isBoss']))
                 ->pluck('id')
                 ->values();
 
-
-
             foreach ($validated['departments'] as $department) {
+                // 'phones' and 'group' are both `sometimes` in the request, so either
+                // key can be missing; ?? avoids "Undefined array key".
+                $phones = $department['phones'] ?? [];
+                $group  = $department['group'] ?? null;
 
-                if (empty($department['phones'])) {
+                // No phones = nothing to update, and no phone to find the
+                // department through for the rename below. Skip it.
+                if (empty($phones)) {
                     continue;
                 }
 
-                foreach ($department['phones'] as $phoneData) {
-
-                    $isMiniBoss = isset($phoneData['isMiniBoss'])
-                        ? (bool) $phoneData['isMiniBoss']
-                        : false;
-
+                foreach ($phones as $phoneData) {
                     Phone::where('id', $phoneData['id'])->update([
-                        'cabinet' => $phoneData['cabinet'] ?? null,
-                        'ip' => $phoneData['ip'] ?? null,
-                        'isMiniBoss' => $isMiniBoss,
+                        'cabinet'    => $phoneData['cabinet'] ?? null,
+                        'ip'         => $phoneData['ip'] ?? null,
+                        'isMiniBoss' => (bool) ($phoneData['isMiniBoss'] ?? false),
+                        // isBoss is deliberately not written here; the boss block
+                        // below handles it so only one boss per department can exist.
                     ]);
+                }
+
+                if (!empty($group)) {
+                    // The payload has no department id, so find it through the first
+                    // phone. $phones is a list of arrays (id, cabinet, ip, ...), so
+                    // take one real id from it; passing $phones itself to find()
+                    // would feed those arrays to whereIn().
+                    // value() reads one column without loading a model.
+                    $departmentId = Phone::whereKey($phones[0]['id'])->value('department_id');
+
+                    Department::whereKey($departmentId)->update(['name' => $group]);
                 }
             }
 
-            if ($selectedBossIds->isNotEmpty()) {
+            // Each selected id is the one boss of its own department.
+            foreach ($selectedBossIds as $bossId) {
+                // Link through department_id, the real relation. The old code grouped
+                // by `group` on phones, which is either not a column or a text copy
+                // that goes stale after a rename (check your phones migration).
+                $departmentId = Phone::whereKey($bossId)->value('department_id');
 
-                $selectedBosses = Phone::whereIn(
-                    'id',
-                    $selectedBossIds
-                )
-                    ->get()
-                    ->groupBy('group');
-
-
-                foreach ($selectedBosses as $groupName => $bosses) {
-
-                    if ($bosses->count() > 1) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'departments' => [
-                                "В отделе {$groupName} может быть только один начальник."
-                            ],
-                        ]);
-                    }
-
-
-                    $boss = $bosses->first();
-
-
-                    Phone::where('group', $groupName)
-                        ->update([
-                            'isBoss' => false,
-                        ]);
-
-                    Phone::where('id', $boss->id)
-                        ->update([
-                            'isBoss' => true,
-                        ]);
-                }
+                // Reset the whole department in the DB, not just the payload: with an
+                // active search the page holds only some of a department's phones,
+                // so the old boss may not be in the payload at all.
+                Phone::where('department_id', $departmentId)->update(['isBoss' => false]);
+                Phone::whereKey($bossId)->update(['isBoss' => true]);
             }
         });
 
         return redirect()
             ->back()
-            ->with(
-                'success',
-                'Справочник успешно обновлен.'
-            );
+            ->with('success', 'Справочник успешно обновлен.');
     }
 }
