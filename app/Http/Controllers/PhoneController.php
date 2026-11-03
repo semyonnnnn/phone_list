@@ -55,10 +55,55 @@ class PhoneController extends Controller
     {
         $validated = $r->validated();
 
-        DB::transaction(function () use ($validated) {
+        // ---- Pre-check group names BEFORE touching the DB ----
+        // The unique index on departments.name would make the UPDATE fail with a
+        // 500, so ask first and answer with a normal Inertia validation error.
+        $nameErrors = [];
+        $seenNames = [];          // names claimed so far in THIS payload
+        $departmentIdByIndex = []; // reused in the transaction, saves a second lookup
 
-            // Ids of every phone marked as boss in the payload (at most one per
-            // department; PhoneUpdateRequest::withValidator() already rejects more).
+        foreach ($validated['departments'] as $depIndex => $department) {
+            $group = $department['group'] ?? null;
+            // The payload has no department id, so find it through the first phone.
+            $firstPhoneId = $department['phones'][0]['id'] ?? null;
+
+            if (empty($group) || !$firstPhoneId) {
+                continue;
+            }
+
+            $departmentId = Phone::whereKey($firstPhoneId)->value('department_id');
+            $departmentIdByIndex[$depIndex] = $departmentId;
+
+            // Taken by ANOTHER department in the DB. The query uses the column's own
+            // collation, so it agrees with the unique index (case, е/ё, and so on).
+            // whereKeyNot() lets a department keep its own name.
+            $takenInDb = Department::where('name', $group)
+                ->whereKeyNot($departmentId)
+                ->exists();
+
+            // Two departments renamed to the same name in one save. The DB can't see
+            // this yet, because neither rename has been written. mb_strtolower is only
+            // an approximation of the collation; the unique index stays the backstop.
+            $key = mb_strtolower($group);
+            $takenInPayload = isset($seenNames[$key]);
+            $seenNames[$key] = true;
+
+            if ($takenInDb || $takenInPayload) {
+                // Key = the form's error-bag path, so useForm().errors exposes it
+                // at errors['departments.{index}.group'] and the card can show it.
+                $nameErrors["departments.{$depIndex}.group"] = "Отдел с названием «{$group}» уже существует.";
+            }
+        }
+
+        if (!empty($nameErrors)) {
+            // Nothing has been written yet, so nothing needs rolling back.
+            // back() + errors is the format Inertia expects: it fills useForm's
+            // `errors` and keeps the user on the page with their edits.
+            return back()->withErrors($nameErrors);
+        }
+
+        DB::transaction(function () use ($validated, $departmentIdByIndex) {
+
             $selectedBossIds = collect($validated['departments'])
                 ->pluck('phones')
                 ->flatten(1)
@@ -66,14 +111,10 @@ class PhoneController extends Controller
                 ->pluck('id')
                 ->values();
 
-            foreach ($validated['departments'] as $department) {
-                // 'phones' and 'group' are both `sometimes` in the request, so either
-                // key can be missing; ?? avoids "Undefined array key".
+            foreach ($validated['departments'] as $depIndex => $department) {
                 $phones = $department['phones'] ?? [];
                 $group  = $department['group'] ?? null;
 
-                // No phones = nothing to update, and no phone to find the
-                // department through for the rename below. Skip it.
                 if (empty($phones)) {
                     continue;
                 }
@@ -83,33 +124,22 @@ class PhoneController extends Controller
                         'cabinet'    => $phoneData['cabinet'] ?? null,
                         'ip'         => $phoneData['ip'] ?? null,
                         'isMiniBoss' => (bool) ($phoneData['isMiniBoss'] ?? false),
-                        // isBoss is deliberately not written here; the boss block
-                        // below handles it so only one boss per department can exist.
+                        // isBoss is written by the boss block below
                     ]);
                 }
 
-                if (!empty($group)) {
-                    // The payload has no department id, so find it through the first
-                    // phone. $phones is a list of arrays (id, cabinet, ip, ...), so
-                    // take one real id from it; passing $phones itself to find()
-                    // would feed those arrays to whereIn().
-                    // value() reads one column without loading a model.
-                    $departmentId = Phone::whereKey($phones[0]['id'])->value('department_id');
-
-                    Department::whereKey($departmentId)->update(['name' => $group]);
+                // Rename, reusing the id found in the pre-check.
+                if (!empty($group) && isset($departmentIdByIndex[$depIndex])) {
+                    Department::whereKey($departmentIdByIndex[$depIndex])
+                        ->update(['name' => $group]);
                 }
             }
 
-            // Each selected id is the one boss of its own department.
             foreach ($selectedBossIds as $bossId) {
-                // Link through department_id, the real relation. The old code grouped
-                // by `group` on phones, which is either not a column or a text copy
-                // that goes stale after a rename (check your phones migration).
                 $departmentId = Phone::whereKey($bossId)->value('department_id');
 
-                // Reset the whole department in the DB, not just the payload: with an
-                // active search the page holds only some of a department's phones,
-                // so the old boss may not be in the payload at all.
+                // Reset the whole department in the DB, not just the payload, because
+                // an active search means the payload may not include the old boss.
                 Phone::where('department_id', $departmentId)->update(['isBoss' => false]);
                 Phone::whereKey($bossId)->update(['isBoss' => true]);
             }

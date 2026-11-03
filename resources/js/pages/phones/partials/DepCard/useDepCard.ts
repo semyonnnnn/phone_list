@@ -1,18 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { PhoneRecord, Department, DepCardProps } from './types';
-
-export const isTruthy = (v: any) => v === true || v === 'true' || v === 1 || v === '1';
-
-export const getBossField = (row: PhoneRecord): keyof PhoneRecord => {
-    if (row && ('is_boss' in row || row.is_boss !== undefined)) return 'is_boss';
-    return 'isBoss';
-};
-
-export const getMiniBossField = (row: PhoneRecord): keyof PhoneRecord => {
-    if (row && ('is_miniboss' in row || row.is_miniboss !== undefined)) return 'is_miniboss';
-    if (row && ('is_isMiniBoss' in row || row.is_isMiniBoss !== undefined)) return 'is_isMiniBoss';
-    return 'isMiniBoss';
-};
+import { Department, DepCardProps } from './types';
+import { isBoss, isMiniBoss, sortWithIndices } from '../../phoneRoles';
 
 export function useDepCard(
     dep: Department,
@@ -43,25 +31,22 @@ export function useDepCard(
         }
     };
 
+    // Enter just leaves the field. GroupNameInput's own onBlur sends the pending
+    // text to the parent, so nothing else has to run here.
     const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            e.currentTarget.blur(); // Triggers blur which commits the change
-            handleGroupSubmit();
+            e.currentTarget.blur();
         }
     };
 
     const isBossChecked = (rowIndex: number) => {
         const row = phones[rowIndex];
-        if (!row) return false;
-        const field = getBossField(row);
-        return isTruthy(row[field] ?? row.isBoss ?? row.is_boss);
+        return row ? isBoss(row) : false;
     };
 
     const isMiniBossChecked = (rowIndex: number) => {
         const row = phones[rowIndex];
-        if (!row) return false;
-        const field = getMiniBossField(row);
-        return isTruthy(row[field] ?? row.isMiniBoss ?? row.is_miniboss ?? row.is_isMiniBoss);
+        return row ? isMiniBoss(row) : false;
     };
 
     const isBossPickDisabled = (rowIndex: number) =>
@@ -70,45 +55,23 @@ export function useDepCard(
     const isMiniBossPickDisabled = (rowIndex: number) =>
         !isMiniBossChecked(rowIndex) && isBossChecked(rowIndex);
 
+    // Keys match what PhoneUpdateRequest::withValidator() adds:
+    // departments.{dep}.phones.{row}.isBoss / .isMiniBoss
     const bossServerError = (rowIndex: number) => {
-        const row = phones[rowIndex];
-        if (!row) return undefined;
-        const field = getBossField(row) as string;
-        return errors?.[`departments.${depIndex}.phones.${rowIndex}.${field}`] ||
-            errors?.[`departments.${depIndex}.phones.${rowIndex}.isBoss`] ||
-            errors?.[`departments.${depIndex}.phones.${rowIndex}.is_boss`];
+        if (!phones[rowIndex]) return undefined;
+        return errors?.[`departments.${depIndex}.phones.${rowIndex}.isBoss`];
     };
 
     const miniBossServerError = (rowIndex: number) => {
-        const row = phones[rowIndex];
-        if (!row) return undefined;
-        const field = getMiniBossField(row) as string;
-        return errors?.[`departments.${depIndex}.phones.${rowIndex}.${field}`] ||
-            errors?.[`departments.${depIndex}.phones.${rowIndex}.isMiniBoss`] ||
-            errors?.[`departments.${depIndex}.phones.${rowIndex}.is_miniboss`] ||
-            errors?.[`departments.${depIndex}.phones.${rowIndex}.is_isMiniBoss`];
+        if (!phones[rowIndex]) return undefined;
+        return errors?.[`departments.${depIndex}.phones.${rowIndex}.isMiniBoss`];
     };
 
     const hasServerError = (rowIndex: number) =>
         Boolean(bossServerError(rowIndex) || miniBossServerError(rowIndex));
 
-    const sortedPhonesWithIndices = useMemo(() => {
-        return phones
-            .map((row, originalIndex) => ({ row, originalIndex }))
-            .sort((a, b) => {
-                const aBoss = isTruthy(a.row[getBossField(a.row)] ?? a.row.isBoss ?? a.row.is_boss);
-                const bBoss = isTruthy(b.row[getBossField(b.row)] ?? b.row.isBoss ?? b.row.is_boss);
-                if (aBoss && !bBoss) return -1;
-                if (!aBoss && bBoss) return 1;
-
-                const aMini = isTruthy(a.row[getMiniBossField(a.row)] ?? a.row.isMiniBoss ?? a.row.is_miniboss);
-                const bMini = isTruthy(b.row[getMiniBossField(b.row)] ?? b.row.isMiniBoss ?? b.row.is_miniboss);
-                if (aMini && !bMini) return -1;
-                if (!aMini && bMini) return 1;
-
-                return a.originalIndex - b.originalIndex;
-            });
-    }, [phones]);
+    // Same dependency as before ([phones]); the sort itself now lives in phoneRoles.ts
+    const sortedPhonesWithIndices = useMemo(() => sortWithIndices(phones), [phones]);
 
     const handleBossButtonClick = () => {
         if (!isAuthenticated) return;
@@ -129,8 +92,8 @@ export function useDepCard(
         const targetRow = phones[targetOriginalIndex];
         if (!targetRow) return;
 
-        const bossField = getBossField(targetRow);
-        if (isTruthy(targetRow[bossField])) return;
+        // a radio can't be unchecked: clicking the current boss does nothing
+        if (isBoss(targetRow)) return;
 
         onBossChange(depIndex, targetOriginalIndex);
     };
@@ -142,15 +105,11 @@ export function useDepCard(
         const targetRow = phones[targetOriginalIndex];
         if (!targetRow) return;
 
-        const miniBossField = getMiniBossField(targetRow);
-        const currentlyMiniBoss = isTruthy(targetRow[miniBossField]);
-
-        onFieldChange(depIndex, targetOriginalIndex, miniBossField, !currentlyMiniBoss);
+        // 'isMiniBoss' is the only field that was ever written here
+        onFieldChange(depIndex, targetOriginalIndex, 'isMiniBoss', !isMiniBoss(targetRow));
     };
 
     const maxNameLen = Math.max(5, ...phones.map((r) => (r.person || '').length)) + 6;
-
-
 
     return {
         phones,

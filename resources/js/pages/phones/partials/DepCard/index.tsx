@@ -1,6 +1,8 @@
 import { IconUserCheck, IconUser, IconPencil, IconCheck, IconExclamationCircle } from '@tabler/icons-react';
 import { DepCardProps } from './types';
 import { useDepCard } from './useDepCard';
+import { GroupNameInput } from './GroupNameInput';
+import { DebouncedInput } from './DebouncedInput';
 
 export default function DepCard({
     dep,
@@ -18,8 +20,6 @@ export default function DepCard({
     const {
         activeColumn,
         groupName,
-        setGroupName,
-        setIsModalOpen,
         sortedPhonesWithIndices,
         maxNameLen,
         isBossChecked,
@@ -49,6 +49,8 @@ export default function DepCard({
 
     const rowCellBorder = (active: boolean) => (active ? 'border-b border-l border-r border-white' : '');
 
+    const groupError = errors?.[`departments.${depIndex}.group`];
+
     return (
         <div className="relative mb-12">
             <div className="absolute -top-3 -right-3 w-[35px] h-[35px] border-4 border-white border-b-0 border-l-0 z-20 pointer-events-none" />
@@ -64,24 +66,22 @@ export default function DepCard({
                 >
                     <div className="bg-[#f5f5f5] inline-block px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]">
                         {!isAuthenticated ? dep.group : (
-                            <div className="flex items-center gap-2 border-b border-black">
-                                <div className="inline-grid">
-                                    <span
-                                        aria-hidden="true"
-                                        className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-[1.35rem]"
-                                    >
-                                        {groupName || ' '}{' '}
-                                    </span>
-                                    <input
-                                        className="col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-[1.35rem] text-inherit p-0"
-                                        type="text"
+                            <div>
+                                <div className="flex items-center gap-2 border-b border-black">
+                                    {/* no onBlur prop: GroupNameInput already sends its pending text on blur */}
+                                    <GroupNameInput
                                         value={groupName}
-                                        onChange={(e) => onGroupNameChange?.(depIndex, e.target.value)}
+                                        onCommit={(val) => onGroupNameChange?.(depIndex, val)}
                                         onKeyDown={handleGroupKeyDown}
-                                        onBlur={handleGroupSubmit}
                                     />
+                                    <IconPencil size={27} stroke={2} aria-hidden="true" className="shrink-0" />
                                 </div>
-                                <IconPencil size={27} stroke={2} aria-hidden="true" className="shrink-0" />
+                                {groupError && (
+                                    <div className="mt-1 flex items-center gap-1 text-red-600 text-[0.7rem] font-bold">
+                                        <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
+                                        <span>{groupError}</span>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -320,53 +320,9 @@ export default function DepCard({
     );
 }
 
-import { useState, useEffect } from 'react';
-
-interface LocalInputProps {
-    value: string | null;
-    onChange: (val: string) => void;
-    readOnly?: boolean;
-    className?: string;
-}
 
 
-interface DebouncedInputProps {
-    value: string | null;
-    onChange: (val: string) => void;
-    readOnly?: boolean;
-    className?: string;
-}
 
-export function DebouncedInput({ value, onChange, readOnly, className }: DebouncedInputProps) {
-    const [localValue, setLocalValue] = useState(value ?? '');
 
-    // Keep local state in sync if parent resets (e.g. Cancel button)
-    useEffect(() => {
-        setLocalValue(value ?? '');
-    }, [value]);
 
-    // Debounce the update to parent state
-    useEffect(() => {
-        // Skip if the value hasn't actually changed from the parent prop
-        if (localValue === (value ?? '')) return;
 
-        const timer = setTimeout(() => {
-            onChange(localValue);
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [localValue]);
-
-    if (readOnly) {
-        return <input type="text" readOnly className={className} value={value ?? ''} />;
-    }
-
-    return (
-        <input
-            type="text"
-            className={className}
-            value={localValue}
-            onChange={(e) => setLocalValue(e.target.value)} // Instant typing response
-        />
-    );
-}

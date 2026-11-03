@@ -6,6 +6,49 @@ import { PopUp } from './partials/PopUp';
 import { usePhoneDirectory } from './usePhoneDirectory';
 import { PageProps } from './types';
 
+// Static, so it lives outside the component: built once instead of on every render.
+const PAGE_STYLE: React.CSSProperties = {
+    fontFamily: '"Courier New", Courier, monospace',
+    backgroundImage: `
+        linear-gradient(#4d1a1a 1px, transparent 1px), linear-gradient(90deg, #4d1a1a 1px, transparent 1px),
+        linear-gradient(#260d0d 1px, transparent 1px), linear-gradient(90deg, #260d0d 1px, transparent 1px),
+        linear-gradient(#4d331a 1px, transparent 1px), linear-gradient(90deg, #4d331a 1px, transparent 1px),
+        linear-gradient(#4d4d1a 1px, transparent 1px), linear-gradient(90deg, #4d4d1a 1px, transparent 1px),
+        linear-gradient(#1a4d1a 1px, transparent 1px), linear-gradient(90deg, #1a4d1a 1px, transparent 1px),
+        linear-gradient(#0d260d 1px, transparent 1px), linear-gradient(90deg, #0d260d 1px, transparent 1px),
+        linear-gradient(#1a4d4d 1px, transparent 1px), linear-gradient(90deg, #1a4d4d 1px, transparent 1px),
+        linear-gradient(#1a264d 1px, transparent 1px), linear-gradient(90deg, #1a264d 1px, transparent 1px),
+        linear-gradient(#0d0d26 1px, transparent 1px), linear-gradient(90deg, #0d0d26 1px, transparent 1px),
+        linear-gradient(#331a4d 1px, transparent 1px), linear-gradient(90deg, #331a4d 1px, transparent 1px),
+        linear-gradient(#4d1a33 1px, transparent 1px), linear-gradient(90deg, #4d1a33 1px, transparent 1px)
+    `,
+    backgroundSize: '11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem',
+    backgroundPosition: `
+        0 0, 0 0,
+        1.1rem 1.1rem, 1.1rem 1.1rem,
+        2.2rem 2.2rem, 2.2rem 2.2rem,
+        3.3rem 3.3rem, 3.3rem 3.3rem,
+        4.4rem 4.4rem, 4.4rem 4.4rem,
+        5.5rem 5.5rem, 5.5rem 5.5rem,
+        6.6rem 6.6rem, 6.6rem 6.6rem,
+        7.7rem 7.7rem, 7.7rem 7.7rem,
+        8.8rem 8.8rem, 8.8rem 8.8rem,
+        9.9rem 9.9rem, 9.9rem 9.9rem,
+        1.1rem 0, 0 1.1rem
+    `,
+};
+
+// Pure helper: uses no props or state, so it doesn't belong inside the component.
+const translatePaginationLabel = (label: string) => {
+    if (label.includes('Previous') || label.includes('&laquo;')) {
+        return '« Назад';
+    }
+    if (label.includes('Next') || label.includes('&raquo;')) {
+        return 'Вперед »';
+    }
+    return label;
+};
+
 export default function Index({
     auth,
     departments,
@@ -15,8 +58,8 @@ export default function Index({
     filters,
     flash,
 }: PageProps) {
-    const initialDeps = departments;
-
+    // `departments` goes in as the backend sent it: the same array object on every
+    // render, which is what keeps the sync effect in the hook from looping.
     const {
         data,
         searchQuery,
@@ -41,21 +84,10 @@ export default function Index({
         pausePopupTimer,
         resumePopupTimer,
         handleGroupNameChange,
-    } = usePhoneDirectory(initialDeps, filters, flash, allGroups);
+    } = usePhoneDirectory(departments, filters, flash, allGroups);
 
-    const filteredDepartments = data.departments;
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
     const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');
-
-    const translatePaginationLabel = (label: string) => {
-        if (label.includes('Previous') || label.includes('&laquo;')) {
-            return '« Назад';
-        }
-        if (label.includes('Next') || label.includes('&raquo;')) {
-            return 'Вперед »';
-        }
-        return label;
-    };
 
     const renderPagination = () => {
         if (!pagination || pagination.last_page <= 1) return null;
@@ -94,36 +126,7 @@ export default function Index({
     return (
         <div
             className="min-h-screen text-[#111] p-16 min-w-[1200px] text-[1.15rem] bg-[#000000]"
-            style={{
-                fontFamily: '"Courier New", Courier, monospace',
-                backgroundImage: `
-                    linear-gradient(#4d1a1a 1px, transparent 1px), linear-gradient(90deg, #4d1a1a 1px, transparent 1px),
-                    linear-gradient(#260d0d 1px, transparent 1px), linear-gradient(90deg, #260d0d 1px, transparent 1px),
-                    linear-gradient(#4d331a 1px, transparent 1px), linear-gradient(90deg, #4d331a 1px, transparent 1px),
-                    linear-gradient(#4d4d1a 1px, transparent 1px), linear-gradient(90deg, #4d4d1a 1px, transparent 1px),
-                    linear-gradient(#1a4d1a 1px, transparent 1px), linear-gradient(90deg, #1a4d1a 1px, transparent 1px),
-                    linear-gradient(#0d260d 1px, transparent 1px), linear-gradient(90deg, #0d260d 1px, transparent 1px),
-                    linear-gradient(#1a4d4d 1px, transparent 1px), linear-gradient(90deg, #1a4d4d 1px, transparent 1px),
-                    linear-gradient(#1a264d 1px, transparent 1px), linear-gradient(90deg, #1a264d 1px, transparent 1px),
-                    linear-gradient(#0d0d26 1px, transparent 1px), linear-gradient(90deg, #0d0d26 1px, transparent 1px),
-                    linear-gradient(#331a4d 1px, transparent 1px), linear-gradient(90deg, #331a4d 1px, transparent 1px),
-                    linear-gradient(#4d1a33 1px, transparent 1px), linear-gradient(90deg, #4d1a33 1px, transparent 1px)
-                `,
-                backgroundSize: '11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem',
-                backgroundPosition: `
-                    0 0, 0 0,
-                    1.1rem 1.1rem, 1.1rem 1.1rem,
-                    2.2rem 2.2rem, 2.2rem 2.2rem,
-                    3.3rem 3.3rem, 3.3rem 3.3rem,
-                    4.4rem 4.4rem, 4.4rem 4.4rem,
-                    5.5rem 5.5rem, 5.5rem 5.5rem,
-                    6.6rem 6.6rem, 6.6rem 6.6rem,
-                    7.7rem 7.7rem, 7.7rem 7.7rem,
-                    8.8rem 8.8rem, 8.8rem 8.8rem,
-                    9.9rem 9.9rem, 9.9rem 9.9rem,
-                    1.1rem 0, 0 1.1rem
-                `
-            }}
+            style={PAGE_STYLE}
         >
             <Head title="Справочник" />
 
@@ -236,7 +239,7 @@ export default function Index({
                             Загрузите файл через панель администратора!
                         </div>
                     </div>
-                ) : filteredDepartments.length === 0 ? (
+                ) : data.departments.length === 0 ? (
                     <div className="border-2 border-[#888] p-8 text-center bg-black/90 shadow-[6px_6px_0px_rgba(255,255,255,0.15)] text-[#f0f0f0]">
                         <div className="text-[1.25rem] font-bold tracking-wider uppercase mb-2 text-[#ffcc00]">
                             [!]  Ничего не найдено
@@ -250,23 +253,24 @@ export default function Index({
                         {renderPagination()}
 
                         <div className="space-y-8">
-                            {filteredDepartments.map((dep) => {
-                                const realDepIndex = data.departments.findIndex(d => d.group === dep.group);
-                                return (
-                                    <DepCard
-                                        bossChanged={bossChanged}
-                                        isMiniBossChanged={isMiniBossChanged}
-                                        key={realDepIndex >= 0 ? realDepIndex : dep.group}
-                                        dep={dep}
-                                        depIndex={realDepIndex >= 0 ? realDepIndex : 0}
-                                        isAuthenticated={auth.is_authenticated}
-                                        onFieldChange={handleFieldChangeByIndices}
-                                        onBossChange={handleBossChange}
-                                        errors={errors}
-                                        onGroupNameChange={handleGroupNameChange}
-                                    />
-                                );
-                            })}
+                            {/* .map already supplies the index, so there is no findIndex by name.
+                                That lookup returned the FIRST card with the same name, so two
+                                departments sharing a name got the same depIndex and the same key,
+                                and edits and server errors landed on the wrong card. */}
+                            {data.departments.map((dep, depIndex) => (
+                                <DepCard
+                                    key={depIndex}
+                                    bossChanged={bossChanged}
+                                    isMiniBossChanged={isMiniBossChanged}
+                                    dep={dep}
+                                    depIndex={depIndex}
+                                    isAuthenticated={auth.is_authenticated}
+                                    onFieldChange={handleFieldChangeByIndices}
+                                    onBossChange={handleBossChange}
+                                    errors={errors}
+                                    onGroupNameChange={handleGroupNameChange}
+                                />
+                            ))}
                         </div>
 
                         <div className="mt-8">

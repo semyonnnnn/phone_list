@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { useForm, router } from '@inertiajs/react';
+import { useForm, router, usePage } from '@inertiajs/react';
 import { PhoneRecord, PageProps, DepartmentOption } from './types';
-
-const EMPTY_DEPS: PageProps['departments'] = [];
 
 export function usePhoneDirectory(
     initialDeps: Array<{ group: string; phones: PhoneRecord[] }>,
@@ -20,13 +18,8 @@ export function usePhoneDirectory(
     const popupStartedAtRef = useRef<number>(0);
     const popupRemainingRef = useRef(4000);
 
-
-    useEffect(() => {
-        if (flash?.success) {
-            setShowSuccess(true);
-        }
-    }, [flash?.success]);
-
+    // Show the popup when the server sends a success flash, and hide it after 4 s.
+    // pausePopupTimer/resumePopupTimer below rely on the refs set here.
     useEffect(() => {
         if (!flash?.success) return;
 
@@ -81,11 +74,25 @@ export function usePhoneDirectory(
     });
     const errorBag = errors as unknown as Record<string, string>;
 
+    // Server-side validation errors from the last response. They live in the page props
+    // next to `departments`, so both are visible in the same render. The double cast
+    // is needed because Inertia's default PageProps type doesn't declare `errors`.
+    const page = usePage();
+    const pageErrors = (page.props as unknown as { errors?: Record<string, string> }).errors;
+
+    // Copies the server's departments into the form whenever a new array arrives.
     useEffect(() => {
-        if (initialDeps) {
-            setData('departments', initialDeps);
-            setOriginalDeps(JSON.parse(JSON.stringify(initialDeps)));
-        }
+        if (!initialDeps) return;
+
+        // A rejected save comes back as a redirect that re-sends `departments` from the
+        // DB (a NEW array, so this effect fires) together with a non-empty `errors` prop.
+        // Overwriting the form now would wipe the name you typed and make hasChanges
+        // false, so the prompt would vanish. Skip the sync while errors are present;
+        // the next response without errors (a good save, Cancel, a search) syncs again.
+        if (pageErrors && Object.keys(pageErrors).length > 0) return;
+
+        setData('departments', initialDeps);
+        setOriginalDeps(JSON.parse(JSON.stringify(initialDeps)));
     }, [initialDeps]);
 
     const handleBossChange = (
@@ -109,6 +116,8 @@ export function usePhoneDirectory(
         setData('departments', updatedDeps);
     };
 
+    // Debounced search/department filter: asks the server for a new page 350 ms
+    // after the last change, and only if something differs from the current filters.
     useEffect(() => {
         const timer = setTimeout(() => {
             const currentSearch = filters?.search || '';
@@ -133,12 +142,17 @@ export function usePhoneDirectory(
         return () => clearTimeout(timer);
     }, [searchQuery, selectedOption]);
 
-    const hasChanges = useMemo(() => {
-        // Optional: normalize strings/whitespace if needed for strict comparison
-        const normalize = (val: any) => JSON.parse(JSON.stringify(val));
-        return JSON.stringify(normalize(data.departments)) !== JSON.stringify(normalize(originalDeps));
-    }, [data.departments, originalDeps]);
+    // Both sides are plain JSON data, so comparing their serialized form is enough.
+    // The old parse(stringify(x)) round trip produced exactly the same string again,
+    // at the cost of extra passes over the whole page on every committed edit.
+    const hasChanges = useMemo(
+        () => JSON.stringify(data.departments) !== JSON.stringify(originalDeps),
+        [data.departments, originalDeps]
+    );
 
+    // NOTE: unchanged on purpose. It still reads the old alias fields (is_boss, nach,
+    // is_miniboss, zam, is_zam), which your data never contains, so both flags are
+    // always false and the red dots never show. Fixing it changes visible behavior.
     const { bossChanged, isMiniBossChanged } = useMemo(() => {
         let boss = false;
         let miniBoss = false;
@@ -254,15 +268,17 @@ export function usePhoneDirectory(
     const handleGroupNameChange = (depIndex: number, newGroupName: string) => {
         const updatedDeps = [...data.departments];
 
-        // Normalize empty strings to null or keep them trimmed depending on your backend
         const normalizedValue = newGroupName.trim() === '' ? null : newGroupName;
 
         updatedDeps[depIndex] = {
             ...updatedDeps[depIndex],
-            group: normalizedValue as any, // or string depending on your types
+            group: normalizedValue as any,
         };
 
         setData('departments', updatedDeps);
+
+        // Editing the field dismisses its own server error, like handleFieldChangeByIndices.
+        clearErrors(`departments.${depIndex}.group` as any);
     };
 
     return {

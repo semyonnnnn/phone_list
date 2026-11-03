@@ -40,3 +40,17 @@ export interface DepCardProps {
     errors?: Record<string, string>;
     onGroupNameChange?: (depIndex: number, newGroupName: string) => void;
 }
+
+export interface GroupNameInputProps {
+    value: string | null;
+    onCommit: (val: string) => void;
+    onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+    onBlur?: React.FocusEventHandler<HTMLInputElement>;
+}
+
+export interface DebouncedInputProps {
+    value: string | null;
+    onChange: (val: string) => void;
+    readOnly?: boolean;
+    className?: string;
+}
