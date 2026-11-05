@@ -7,24 +7,24 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 ////////////////////////////////
 use App\Models\Phone;
-use App\Services\PhoneUploadService;
+use App\Services\PhoneService;
 
 class FileController extends Controller
 {
-    public function upload(FileUploadRequest $request, PhoneUploadService $service)
-{
-    try {
-        $service->upload($request->file('file'));
-    } catch (RuntimeException $e) {
-        // Same JSON response as before, so frontend behavior doesn't change.
-        return response()->json([
-            'message' => 'Не удалось связаться с Python-сервером.',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
+    public function upload(FileUploadRequest $request, PhoneService $service)
+    {
+        try {
+            $service->upload($request->file('file'));
+        } catch (RuntimeException $e) {
+            // Same JSON response as before, so frontend behavior doesn't change.
+            return response()->json([
+                'message' => 'Не удалось связаться с Python-сервером.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 
-    return redirect()->back()->with('success', 'Файл успешно обработан и база данных синхронизирована.');
-}
+        return redirect()->back()->with('success', 'Файл успешно обработан и база данных синхронизирована.');
+    }
 
     public function download()
     {

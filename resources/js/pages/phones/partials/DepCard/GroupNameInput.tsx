@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { GroupNameInputProps } from "./types";
 
-
+const MAX_VISIBLE = 50;
 
 export function GroupNameInput({ value, onCommit, onKeyDown, onBlur }: GroupNameInputProps) {
     const [local, setLocal] = useState(value ?? '');
@@ -39,7 +39,7 @@ export function GroupNameInput({ value, onCommit, onKeyDown, onBlur }: GroupName
                 aria-hidden="true"
                 className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-[1.35rem]"
             >
-                {local || ' '}{' '}
+                {local.slice(0, MAX_VISIBLE) || ' '}{' '}
             </span>
             <input
                 className="col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-[1.35rem] text-inherit p-0"

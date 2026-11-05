@@ -37,10 +37,6 @@ class PhoneRepository
         });
     }
 
-    // Add to the imports:
-    // use App\Models\Department;
-    // use Illuminate\Pagination\LengthAwarePaginator;
-
     public function count(): int
     {
         return Phone::count();
@@ -76,5 +72,46 @@ class PhoneRepository
             ->orderBy('departments.name');
 
         return $query->paginate($perPage)->withQueryString();
+    }
+
+    // Used by PhoneService::update() to find a card's department through its first
+    // phone, because the payload carries no department id.
+    public function departmentIdOf(int $phoneId): ?int
+    {
+        $id = Phone::whereKey($phoneId)->value('department_id');
+
+        // value() can return a numeric string depending on the PDO setup,
+        // so cast explicitly instead of relying on PHP's coercion.
+        return $id === null ? null : (int) $id;
+    }
+
+    // The only columns the user edits by hand. isBoss is written by setBoss() below.
+    public function updateEditable(
+        int $id,
+        ?string $cabinet,
+        ?string $ip,
+        bool $isMiniBoss,
+        ?string $person,
+        ?string $phone,
+        ?string $extension
+    ): void {
+        Phone::whereKey($id)->update([
+            'cabinet'    => $cabinet,
+            'ip'         => $ip,
+            'isMiniBoss' => $isMiniBoss,
+            'person' => $person,
+            'phone' => $phone,
+            'extension' => $extension,
+        ]);
+    }
+
+    public function setBoss(int $bossId): void
+    {
+        $departmentId = $this->departmentIdOf($bossId);
+
+        // Reset the whole department in the DB, not just the payload, because
+        // an active search means the payload may not include the old boss.
+        Phone::where('department_id', $departmentId)->update(['isBoss' => false]);
+        Phone::whereKey($bossId)->update(['isBoss' => true]);
     }
 }

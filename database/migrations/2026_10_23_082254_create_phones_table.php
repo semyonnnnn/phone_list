@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('person')->collation('utf8mb4_unicode_ci');          // ФИО (case-insensitive for Cyrillic)
             $table->string('phone');            // Телефон
-            $table->string('extension');        // Добавочный
+            $table->string('extension')->nullable();        // Добавочный
             $table->string('cabinet')->nullable(); // Разрешить пустое значение
             $table->string('ip')->nullable();      // Разрешить пустое значение
             $table->string('file_id')->nullable()->unique();

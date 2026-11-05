@@ -53,4 +53,19 @@ class DepartmentRepository
 
         return $ids;
     }
+
+    // Used by PhoneService::update() before any write happens.
+    // The query uses the column's own collation, so it agrees with the unique index
+    // (case, е/ё, and so on). whereKeyNot() lets a department keep its own name.
+    public function nameTakenByAnother(string $name, ?int $departmentId): bool
+    {
+        return Department::where('name', $name)
+            ->whereKeyNot($departmentId)
+            ->exists();
+    }
+
+    public function rename(int $departmentId, string $name): void
+    {
+        Department::whereKey($departmentId)->update(['name' => $name]);
+    }
 }

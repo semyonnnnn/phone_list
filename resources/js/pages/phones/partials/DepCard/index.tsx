@@ -260,12 +260,11 @@ export default function DepCard({
                                                         ЗАМ
                                                     </span>
                                                 )}
-                                                <input
-                                                    type="text"
-                                                    readOnly
-                                                    className={`text-[1.15rem] border-0 bg-transparent p-[0.1rem] outline-none cursor-default block font-mono ${bossActive ? 'font-black text-black' : miniBossActive ? 'font-bold text-[#222]' : 'text-[#333]'}`}
-                                                    style={{ width: `${maxNameLen}ch` }}
-                                                    value={row?.person || ''}
+                                                <DebouncedInput
+                                                    readOnly={!isAuthenticated}
+                                                    value={row?.person}
+                                                    onChange={(val) => onFieldChange(depIndex, originalIndex, 'person', val)}
+                                                    className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
                                                 />
                                             </div>
                                             {rowHasServerError && (
@@ -275,19 +274,19 @@ export default function DepCard({
                                             )}
                                         </td>
                                         <td className={`border-r border-[#ccc] p-3 ${rowCellBorder(anyBossActive)}`}>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                className={`text-[1.15rem] border-0 bg-transparent p-[0.3rem] outline-none text-black cursor-default w-full font-mono ${bossActive ? 'font-bold' : ''}`}
-                                                value={row?.phone || ''}
+                                            <DebouncedInput
+                                                readOnly={!isAuthenticated}
+                                                value={row?.phone}
+                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'phone', val)}
+                                                className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
                                             />
                                         </td>
                                         <td className={`border-r border-[#ccc] p-3 ${rowCellBorder(anyBossActive)}`}>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border cursor-default font-mono ${bossActive ? 'font-bold' : ''}`}
-                                                value={row?.extension || ''}
+                                            <DebouncedInput
+                                                readOnly={!isAuthenticated}
+                                                value={row?.extension}
+                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'extension', val)}
+                                                className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
                                             />
                                         </td>
                                         {/* Cabinet Input */}
