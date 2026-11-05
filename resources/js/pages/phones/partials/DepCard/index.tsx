@@ -3,6 +3,7 @@ import { DepCardProps } from './types';
 import { useDepCard } from './useDepCard';
 import { GroupNameInput } from './GroupNameInput';
 import { DebouncedInput } from './DebouncedInput';
+import { TerritorySwitch } from '@/components/TerritorySwitch';
 
 export default function DepCard({
     dep,
@@ -16,6 +17,8 @@ export default function DepCard({
     bossChanged,
     isMiniBossChanged,
     errors,
+    territories, // CHANGED: the two options, from the backend via the page
+    handleTerritoryChange,
 }: DepCardProps) {
     const {
         activeColumn,
@@ -49,7 +52,10 @@ export default function DepCard({
 
     const rowCellBorder = (active: boolean) => (active ? 'border-b border-l border-r border-white' : '');
 
-    const groupError = errors?.[`departments.${depIndex}.group`];
+    // CHANGED: the server error for the name now lives under the nested key
+    const groupError = errors?.[`departments.${depIndex}.group.name`];
+
+    console.log(sortedPhonesWithIndices);
 
     return (
         <div className="relative mb-12">
@@ -64,26 +70,41 @@ export default function DepCard({
                         backgroundSize: '0.5rem 0.5rem',
                     }}
                 >
-                    <div className="bg-[#f5f5f5] inline-block px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]">
-                        {!isAuthenticated ? dep.group : (
-                            <div>
-                                <div className="flex items-center gap-2 border-b border-black">
-                                    {/* no onBlur prop: GroupNameInput already sends its pending text on blur */}
-                                    <GroupNameInput
-                                        value={groupName}
-                                        onCommit={(val) => onGroupNameChange?.(depIndex, val)}
-                                        onKeyDown={handleGroupKeyDown}
-                                    />
-                                    <IconPencil size={27} stroke={2} aria-hidden="true" className="shrink-0" />
-                                </div>
-                                {groupError && (
-                                    <div className="mt-1 flex items-center gap-1 text-red-600 text-[0.7rem] font-bold">
-                                        <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
-                                        <span>{groupError}</span>
+                    <div className='flex'>
+                        <div className="bg-[#f5f5f5] inline-block px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]">
+                            {/* CHANGED: dep.group is an object now, the text is dep.group.name */}
+                            {!isAuthenticated ? dep.group.name : (
+                                <div>
+                                    <div className="flex items-center gap-2 border-b border-black">
+                                        {/* no onBlur prop: GroupNameInput already sends its pending text on blur */}
+                                        <GroupNameInput
+                                            value={groupName}
+                                            onCommit={(val) => onGroupNameChange?.(depIndex, val)}
+                                            onKeyDown={handleGroupKeyDown}
+                                        />
+
+                                        <IconPencil size={27} stroke={2} aria-hidden="true" className="shrink-0" />
+
                                     </div>
-                                )}
-                            </div>
-                        )}
+
+                                    {groupError && (
+                                        <div className="mt-1 flex items-center gap-1 text-red-600 text-[0.7rem] font-bold">
+                                            <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
+                                            <span>{groupError}</span>
+                                        </div>
+                                    )}
+
+                                </div>
+                            )}
+
+                        </div>
+                        {/* CHANGED: options and value now come from data, nothing is hardcoded */}
+                        <TerritorySwitch
+                            options={territories}
+                            value={dep.group.territory}
+                            isAuthenticated={isAuthenticated}
+                            onChange={(territory) => handleTerritoryChange(depIndex, territory)}
+                        />
                     </div>
 
                     {isAuthenticated && (
@@ -318,10 +339,3 @@ export default function DepCard({
         </div>
     );
 }
-
-
-
-
-
-
-

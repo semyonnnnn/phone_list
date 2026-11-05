@@ -15,11 +15,12 @@ export interface PhoneRecord {
 }
 
 export interface Department {
-    group: string;
+    group: DepartmentGroup;
     phones: PhoneRecord[];
 }
 
 export interface DepCardProps {
+    territories: [string, string];
     dep: Department;
     depIndex: number;
     isAuthenticated: boolean;
@@ -39,6 +40,7 @@ export interface DepCardProps {
     isMiniBossChanged: boolean;
     errors?: Record<string, string>;
     onGroupNameChange?: (depIndex: number, newGroupName: string) => void;
+    handleTerritoryChange: (depIndex: number, territory: string) => void; // NEW
 }
 
 export interface GroupNameInputProps {
@@ -54,3 +56,9 @@ export interface DebouncedInputProps {
     readOnly?: boolean;
     className?: string;
 }
+
+// `type`, not `interface`: see the note above. PageProps and the form data reuse this.
+export type DepartmentGroup = {
+    name: string;
+    territory: string;
+};

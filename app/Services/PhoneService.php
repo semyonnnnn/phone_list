@@ -27,7 +27,7 @@ class PhoneService
         return $this->directory->getPage($search, $departmentFilter);
     }
 
-    public function upload(UploadedFile $file): void
+    public function upload(UploadedFile $file, string $territory): void
     {
         $response = Http::attach(
             'file',
@@ -64,6 +64,7 @@ class PhoneService
                 'person'    => $this->clean($row['person'] ?? ''),
                 'extension' => $this->clean($row['extension'] ?? ''),
                 'phone'     => $this->clean($row['phone'] ?? ''),
+                'territory' => $this->clean($territory ?? ''),
                 'file_id'   => $fileId,
             ];
         }
@@ -90,6 +91,7 @@ class PhoneService
                     'extension'     => $row['extension'],
                     'phone'         => $row['phone'],
                     'file_id'       => $row['file_id'],
+                    'territory'     => $row['territory'],
                 ];
             }
 

@@ -8,6 +8,7 @@ use Inertia\Inertia;
 ////////////////////////////////////
 use App\Http\Requests\PhoneUpdateRequest;
 use App\Services\PhoneService;
+use App\Enums\Territory;
 
 class PhoneController extends Controller
 {
@@ -38,6 +39,8 @@ class PhoneController extends Controller
                 'search' => $search,
                 'department' => $departmentFilter,
             ],
+
+            'territories' => Territory::values(),
         ]);
     }
 

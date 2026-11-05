@@ -1,3 +1,4 @@
+import { DepartmentGroup } from './partials/DepCard/types';
 export interface PhoneRecord {
     id?: number;
     person: string;
@@ -33,9 +34,10 @@ export interface PageProps {
         user_id?: number | null;
     };
     departments: Array<{
-        group: string;
+        group: DepartmentGroup;          // was: group: string
         phones: PhoneRecord[];
     }>;
+    territories: [string, string];       // NEW: the two options, sent by the backend
     flash?: {
         success?: {
             message: string;

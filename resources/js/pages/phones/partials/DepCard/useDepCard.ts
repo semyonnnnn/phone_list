@@ -16,17 +16,21 @@ export function useDepCard(
     const phones = dep.phones || [];
     const [activeColumn, setActiveColumn] = useState<'isBoss' | 'isMiniBoss' | null>(null);
 
-    // Local state for department group name editing
-    const [groupName, setGroupName] = useState(dep.group);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // dep.group is { name, territory }; only the name is text that gets edited,
+    // so only the name goes into this string state.
+    const [groupName, setGroupName] = useState(dep.group.name);
+
+    // Pull the name in when the server (or Cancel) sends a new one. It depends on
+    // dep.group.name, not dep.group: a territory click replaces the group object but
+    // leaves the name unchanged, so this effect doesn't fire and nothing resets.
     useEffect(() => {
-        setGroupName(dep.group);
-    }, [dep.group]);
+        setGroupName(dep.group.name);
+    }, [dep.group.name]);
 
     const handleGroupSubmit = () => {
-        if (groupName.trim() !== dep.group) {
+        if (groupName.trim() !== dep.group.name) {
             onGroupNameChange?.(depIndex, groupName);
         }
     };

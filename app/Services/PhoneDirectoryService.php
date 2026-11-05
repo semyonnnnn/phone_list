@@ -17,6 +17,7 @@ class PhoneDirectoryService
      */
     public function getPage(?string $search, ?string $department): array
     {
+
         $paginated = $this->phoneRepository->paginate($search, $department, 15);
 
         // The rows arrive already ordered, and groupBy keeps first-appearance order,
@@ -24,9 +25,13 @@ class PhoneDirectoryService
         $departments = $paginated
             ->getCollection()
             ->groupBy('group')
-            ->map(fn($items, $groupName) => [
-                'group' => $groupName,
-                'phones' => $items->values()->all(),
+            ->map(fn($group) => [
+                'group' => [
+                    // every phone in the group carries the same department fields, so the first is enough
+                    'name'      => $group->first()->group,
+                    'territory' => $group->first()->territory,
+                ],
+                'phones' => $group->values()->all(),
             ])
             ->values()
             ->all();

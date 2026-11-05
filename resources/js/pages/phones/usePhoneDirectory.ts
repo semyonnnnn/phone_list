@@ -3,7 +3,7 @@ import { useForm, router, usePage } from '@inertiajs/react';
 import { PhoneRecord, PageProps, DepartmentOption } from './types';
 
 export function usePhoneDirectory(
-    initialDeps: Array<{ group: string; phones: PhoneRecord[] }>,
+    initialDeps: PageProps['departments'],
     filters: PageProps['filters'],
     flash: PageProps['flash'],
     allGroups?: string[]
@@ -264,7 +264,6 @@ export function usePhoneDirectory(
             value: { number: String(i), name: groupName }
         }))
     ];
-
     const handleGroupNameChange = (depIndex: number, newGroupName: string) => {
         const updatedDeps = [...data.departments];
 
@@ -272,13 +271,26 @@ export function usePhoneDirectory(
 
         updatedDeps[depIndex] = {
             ...updatedDeps[depIndex],
-            group: normalizedValue as any,
+            // spread the old group so `territory` survives a name edit
+            group: { ...updatedDeps[depIndex].group, name: normalizedValue as any },
         };
 
         setData('departments', updatedDeps);
 
-        // Editing the field dismisses its own server error, like handleFieldChangeByIndices.
-        clearErrors(`departments.${depIndex}.group` as any);
+        // the server error now lives under the nested key
+        clearErrors(`departments.${depIndex}.group.name` as any);
+    };
+
+    const handleTerritoryChange = (depIndex: number, territory: string) => {
+        const updatedDeps = [...data.departments];
+
+        updatedDeps[depIndex] = {
+            ...updatedDeps[depIndex],
+            // same idea in reverse: keep the name, replace only the territory
+            group: { ...updatedDeps[depIndex].group, territory },
+        };
+
+        setData('departments', updatedDeps);
     };
 
     return {
@@ -305,5 +317,6 @@ export function usePhoneDirectory(
         pausePopupTimer,
         resumePopupTimer,
         handleGroupNameChange,
+        handleTerritoryChange,
     };
 }

@@ -13,8 +13,9 @@ class FileController extends Controller
 {
     public function upload(FileUploadRequest $request, PhoneService $service)
     {
+        //! TODO: change this
         try {
-            $service->upload($request->file('file'));
+            $service->upload($request->file('file'), 'ЕКБ');
         } catch (RuntimeException $e) {
             // Same JSON response as before, so frontend behavior doesn't change.
             return response()->json([

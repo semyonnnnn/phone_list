@@ -49,7 +49,7 @@ class PhoneRepository
     {
         $query = Phone::query()
             ->join('departments', 'departments.id', '=', 'phones.department_id')
-            ->select('phones.*', 'departments.name as group');
+            ->select('phones.*', 'departments.name as group', 'departments.territory as territory');
 
         if ($search) {
             // No mb_strtolower and no LOWER(): LIKE on a _ci column is already case-insensitive for Cyrillic.

@@ -57,6 +57,7 @@ export default function Index({
     pagination,
     filters,
     flash,
+    territories,
 }: PageProps) {
     // `departments` goes in as the backend sent it: the same array object on every
     // render, which is what keeps the sync effect in the hook from looping.
@@ -84,6 +85,7 @@ export default function Index({
         pausePopupTimer,
         resumePopupTimer,
         handleGroupNameChange,
+        handleTerritoryChange,   // NEW
     } = usePhoneDirectory(departments, filters, flash, allGroups);
 
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
@@ -269,6 +271,8 @@ export default function Index({
                                     onBossChange={handleBossChange}
                                     errors={errors}
                                     onGroupNameChange={handleGroupNameChange}
+                                    territories={territories}
+                                    handleTerritoryChange={handleTerritoryChange}
                                 />
                             ))}
                         </div>
