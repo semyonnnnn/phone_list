@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FileUploadRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 use RuntimeException;
 ////////////////////////////////
 use App\Models\Phone;
 use App\Services\PhoneService;
+use App\Http\Requests\FileUploadRequest;
 
 class FileController extends Controller
 {
-    public function upload(FileUploadRequest $request, PhoneService $service)
+    public function upload(FileUploadRequest $r, PhoneService $service)
     {
-        //! TODO: change this
         try {
-            $service->upload($request->file('file'), 'ЕКБ');
+            $service->upload($r->file('file'), $r->territory);
         } catch (RuntimeException $e) {
             // Same JSON response as before, so frontend behavior doesn't change.
             return response()->json([

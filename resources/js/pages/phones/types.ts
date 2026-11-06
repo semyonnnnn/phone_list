@@ -34,10 +34,9 @@ export interface PageProps {
         user_id?: number | null;
     };
     departments: Array<{
-        group: DepartmentGroup;          // was: group: string
+        group: DepartmentGroup;
         phones: PhoneRecord[];
     }>;
-    territories: [string, string];       // NEW: the two options, sent by the backend
     flash?: {
         success?: {
             message: string;
@@ -59,3 +58,23 @@ export interface PageProps {
     };
     [key: string]: any;
 }
+
+
+
+export const TERRITORIES = {
+    ekb: 'ЕКБ',
+    krg: 'КРГ',
+} as const;
+
+export type TerritoryKey = keyof typeof TERRITORIES
+
+export interface PhoneForm {
+    departments: {
+        group: DepartmentGroup;
+        phones: PhoneRecord[];
+    }[];
+    territory: TerritoryKey;
+    [key: string]: any; // <--- Satisfies Inertia's FormDataType constraint
+}
+
+export const DEFAULT_TERRITORY = Object.keys(TERRITORIES)[0] as TerritoryKey;

@@ -6,7 +6,7 @@ export function useDepCard(
     dep: Department,
     depIndex: number,
     isAuthenticated: boolean,
-    errors: Record<string, string> | undefined,
+    errors: Partial<Record<string, string>>,
     onFieldChange: DepCardProps['onFieldChange'],
     onBossChange: DepCardProps['onBossChange'],
     onGroupNameChange?: DepCardProps['onGroupNameChange'],

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
-import { PhoneRecord, PageProps, DepartmentOption } from './types';
+import { PhoneRecord, PageProps, DepartmentOption, PhoneForm, DEFAULT_TERRITORY, TerritoryKey } from './types';
 
 export function usePhoneDirectory(
     initialDeps: PageProps['departments'],
@@ -69,8 +69,9 @@ export function usePhoneDirectory(
         }, popupRemainingRef.current);
     };
 
-    const { data, setData, put, processing, errors, clearErrors } = useForm({
+    const { data, setData, put, processing, errors, clearErrors } = useForm<PhoneForm>({
         departments: initialDeps,
+        territory: DEFAULT_TERRITORY,
     });
     const errorBag = errors as unknown as Record<string, string>;
 
@@ -114,6 +115,11 @@ export function usePhoneDirectory(
         });
 
         setData('departments', updatedDeps);
+    };
+
+    const handleTerritoryUpload = (territory: TerritoryKey) => {
+        fileInputRef.current?.click();
+        setData('territory', territory);
     };
 
     // Debounced search/department filter: asks the server for a new page 350 ms
@@ -246,6 +252,7 @@ export function usePhoneDirectory(
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('territory', data.territory);
 
         router.post(route('files.upload'), formData, {
             forceFormData: true,
@@ -318,5 +325,6 @@ export function usePhoneDirectory(
         resumePopupTimer,
         handleGroupNameChange,
         handleTerritoryChange,
+        handleTerritoryUpload,
     };
 }

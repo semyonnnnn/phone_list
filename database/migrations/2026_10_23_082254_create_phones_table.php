@@ -10,12 +10,19 @@ return new class extends Migration
     {
         Schema::create('phones', function (Blueprint $table) {
             $table->id();
-            $table->string('person')->collation('utf8mb4_unicode_ci');          // ФИО (case-insensitive for Cyrillic)
-            $table->string('phone');            // Телефон
-            $table->string('extension')->nullable();        // Добавочный
-            $table->string('cabinet')->nullable(); // Разрешить пустое значение
-            $table->string('ip')->nullable();      // Разрешить пустое значение
-            $table->string('file_id')->nullable()->unique();
+
+            // Was unique(). Plain index now: the same file_id may exist once per territory,
+            // and that uniqueness is enforced in PhoneRepository::sync(), since territory
+            // lives on departments and an index can't span two tables.
+            // I can't see your original line. I assumed nullable because sync() uses
+            // whereNotNull('file_id'). Keep whatever modifiers you had, minus unique().
+            $table->string('file_id')->nullable()->index();
+
+            $table->string('person')->collation('utf8mb4_unicode_ci');
+            $table->string('phone');
+            $table->string('extension')->nullable();
+            $table->string('cabinet')->nullable();
+            $table->string('ip')->nullable();
             $table->boolean('isBoss')->default(false);
             $table->boolean('isMiniBoss')->default(false);
             $table->foreignId('department_id')->constrained()->cascadeOnDelete();
@@ -25,6 +32,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        // A create migration is undone by dropping the table.
         Schema::dropIfExists('phones');
     }
 };

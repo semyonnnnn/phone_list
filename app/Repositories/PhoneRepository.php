@@ -13,25 +13,48 @@ class PhoneRepository
      * Make the phones table match the given rows exactly:
      * insert new, update existing, delete everything else.
      */
-    public function sync(array $rows): void
+    // $territory scopes both the lookup and the delete to one territory,
+    // so uploading 'krg' can never touch 'ekb'.
+    public function sync(array $rows, string $territory): void
     {
-        DB::transaction(function () use ($rows) {
+        DB::transaction(function () use ($rows, $territory) {
+            // Ids of every department in this territory. PhoneService creates the departments
+            // before calling sync(), so the ones from this very upload are already included.
+            $territoryDepartmentIds = Department::where('territory', $territory)->pluck('id');
+
             foreach ($rows as $row) {
-                Phone::updateOrCreate(
-                    // file_id is the lookup key: find the record by it, or create one with it.
-                    ['file_id' => $row['file_id']],
-                    // Every column this repository writes is listed here.
-                    [
+                // Look for this file_id only among phones of THIS territory. Matching on
+                // file_id alone is what pulled the other territory's phones into this upload.
+                // Matching by territory (not by department) also means a person who moved to
+                // another department of the same territory is updated, not duplicated.
+                $phone = Phone::where('file_id', $row['file_id'])
+                    ->whereIn('department_id', $territoryDepartmentIds)
+                    ->first();
+
+                if ($phone) {
+                    // Same four columns as before, so cabinet, ip and the boss flags
+                    // edited in the app survive a re-upload.
+                    $phone->update([
                         'department_id' => $row['department_id'],
                         'person'        => $row['person'],
                         'extension'     => $row['extension'],
                         'phone'         => $row['phone'],
-                    ]
-                );
+                    ]);
+                } else {
+                    Phone::create([
+                        'file_id'       => $row['file_id'],
+                        'department_id' => $row['department_id'],
+                        'person'        => $row['person'],
+                        'extension'     => $row['extension'],
+                        'phone'         => $row['phone'],
+                    ]);
+                }
             }
 
-            // Still relies on the service never passing an empty array (it returns early in that case).
+            // Delete only phones of THIS territory that are no longer in the file.
+            // Still relies on the service never passing an empty array (it returns early then).
             Phone::whereNotNull('file_id')
+                ->whereIn('department_id', $territoryDepartmentIds)
                 ->whereNotIn('file_id', array_column($rows, 'file_id'))
                 ->delete();
         });

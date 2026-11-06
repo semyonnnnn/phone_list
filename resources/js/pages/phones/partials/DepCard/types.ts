@@ -1,3 +1,4 @@
+import type { TerritoryKey } from '@/pages/phones/types';
 export interface PhoneRecord {
     id?: number;
     person: string;
@@ -38,9 +39,9 @@ export interface DepCardProps {
     onEditIsMiniBoss?: (depIndex: number) => void;
     bossChanged: boolean;
     isMiniBossChanged: boolean;
-    errors?: Record<string, string>;
     onGroupNameChange?: (depIndex: number, newGroupName: string) => void;
-    handleTerritoryChange: (depIndex: number, territory: string) => void; // NEW
+    handleTerritoryChange: (depIndex: number, territory: TerritoryKey) => void; // NEW
+    errors: Partial<Record<string, string>>;
 }
 
 export interface GroupNameInputProps {
@@ -57,8 +58,7 @@ export interface DebouncedInputProps {
     className?: string;
 }
 
-// `type`, not `interface`: see the note above. PageProps and the form data reuse this.
 export type DepartmentGroup = {
     name: string;
-    territory: string;
+    territory: TerritoryKey; // was string
 };

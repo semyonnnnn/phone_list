@@ -5,6 +5,7 @@ import DepartmentDropdown from './partials/DepartmentDropdown';
 import { PopUp } from './partials/PopUp';
 import { usePhoneDirectory } from './usePhoneDirectory';
 import { PageProps } from './types';
+import { UploadIcon } from "lucide-react";
 
 // Static, so it lives outside the component: built once instead of on every render.
 const PAGE_STYLE: React.CSSProperties = {
@@ -85,7 +86,8 @@ export default function Index({
         pausePopupTimer,
         resumePopupTimer,
         handleGroupNameChange,
-        handleTerritoryChange,   // NEW
+        handleTerritoryChange,
+        handleTerritoryUpload,
     } = usePhoneDirectory(departments, filters, flash, allGroups);
 
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
@@ -188,14 +190,26 @@ export default function Index({
 
                 <div className="relative z-10 flex items-center gap-2">
                     {auth.is_authenticated &&
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
-                            style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                        >
-                            ВАТС
-                        </button>
+                        <div className='flex gap-1'>
+                            <button
+                                type="button"
+                                onClick={() => handleTerritoryUpload('ekb')}
+                                className="flex gap-2 text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
+                                style={{ fontFamily: '"Courier New", Courier, monospace' }}
+                            >
+                                <div>ЕКБ</div>
+                                <UploadIcon />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleTerritoryUpload('krg')}
+                                className="flex gap-2 text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
+                                style={{ fontFamily: '"Courier New", Courier, monospace' }}
+                            >
+                                <div>КРГ</div>
+                                <UploadIcon />
+                            </button>
+                        </div>
                     }
                     <button
                         type="button"

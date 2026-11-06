@@ -2,18 +2,36 @@
 
 namespace App\Enums;
 
-// The only place the territory list is written. The order of the cases is the order
-// of the options in the switch on the page.
 enum Territory: string
 {
-    // Case names stay Latin, because they're identifiers in code. The value is what
-    // the database, the page and the validation all see.
-    case Ekb = 'ЕКБ';
-    case Krg = 'КРГ';
+    case ekb = 'ЕКБ';
+    case krg = 'КРГ';
 
-    // ['ЕКБ', 'КРГ'], the plain list the page needs.
+    // ['ekb', 'krg'] — what the DB stores and what requests send
+    public static function keys(): array
+    {
+        return array_column(self::cases(), 'name');
+    }
+
+    // ['ЕКБ', 'КРГ']
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
+    }
+
+    // DB key -> case. Backed-enum from() works on values, not names,
+    // so constant() is the lookup by name. Throws if the key is unknown.
+    public static function fromKey(string $key): self
+    {
+        return constant(self::class . '::' . $key);
+    }
+
+    // Dropdown data for the frontend: key is submitted, label is shown.
+    public static function options(): array
+    {
+        return array_map(
+            fn(self $t) => ['key' => $t->name, 'label' => $t->value],
+            self::cases()
+        );
     }
 }

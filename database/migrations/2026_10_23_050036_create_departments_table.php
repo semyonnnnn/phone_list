@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Territory;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,11 +14,12 @@ return new class extends Migration
 
             // _ci means case is ignored, so "Отдел" and "отдел" count as the same name.
             $table->string('name')->collation('utf8mb4_unicode_ci');
-            // The default is for the upload: syncByName / resolveFileNames create
-            // departments from a file's group names and don't pass a territory yet.
-            // Without a default, MariaDB in strict mode rejects those inserts.
-            // Keep it equal to Department::TERRITORIES[0].
-            $table->string('territory')->default('ЕКБ')->collation('utf8mb4_unicode_ci');
+
+            // Constrained strictly to the allowed enum values (ЕКБ or КРГ)
+            // Allowed DB values come from the enum keys, so the DB enforces them too.
+            $table->enum('territory', Territory::keys())
+                // ->name, not ->value: the column holds keys, so the default must be a key.
+                ->default(Territory::ekb->name);
 
             $table->timestamps();
 

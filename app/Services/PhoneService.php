@@ -63,7 +63,6 @@ class PhoneService
                 'person'    => $this->clean($row['person'] ?? ''),
                 'extension' => $this->clean($row['extension'] ?? ''),
                 'phone'     => $this->clean($row['phone'] ?? ''),
-                'territory' => $this->clean($territory ?? ''),
                 'file_id'   => $fileId,
             ];
         }
@@ -76,25 +75,39 @@ class PhoneService
         // One transaction around all three steps: if the phone sync fails,
         // the departments created in step 1 are rolled back too. The repositories' own
         // transactions nest inside this one without problems.
-        DB::transaction(function () use ($cleanRows) {
-            // Step 1: every distinct group name becomes a department; we get [name => id] back.
-            $names = array_values(array_unique(array_column($cleanRows, 'group')));
-            $departmentIds = $this->departmentRepository->syncByName($names);
+        DB::transaction(function () use ($cleanRows, $territory) {
+            // Step 1: collect distinct, non-empty group names (keyed by name = de-duplication).
+            $names = [];
+            foreach ($cleanRows as $row) {
+                if ($row['group'] !== '') {
+                    $names[$row['group']] = $row['group'];
+                }
+            }
+            $names = array_values($names);
 
-            // Step 2: build the phone rows, now with the department id looked up by group name.
+            // Was $cleanRows. syncByName expects a list of name strings, so pass $names.
+            $departmentIds = $this->departmentRepository->syncByName($names, $territory);
+
+            // Step 2: build the phone rows with the department id looked up by group name.
             $phoneRows = [];
             foreach ($cleanRows as $row) {
+                // Rows with an empty group were excluded from $names, so they have no id.
+                // Without this skip, $departmentIds[''] would be an "undefined array key" error
+                // as soon as the first bug is fixed.
+                if ($row['group'] === '') {
+                    continue;
+                }
+
                 $phoneRows[] = [
                     'department_id' => $departmentIds[$row['group']],
                     'person'        => $row['person'],
                     'extension'     => $row['extension'],
                     'phone'         => $row['phone'],
                     'file_id'       => $row['file_id'],
-                    'territory'     => $row['territory'],
                 ];
             }
 
-            $this->phoneRepository->sync($phoneRows);
+            $this->phoneRepository->sync($phoneRows, $territory);
         });
     }
 

@@ -40,7 +40,7 @@ class PhoneController extends Controller
                 'department' => $departmentFilter,
             ],
 
-            'territories' => Territory::values(),
+            'territories' => Territory::keys(),
         ]);
     }
 

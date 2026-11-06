@@ -1,17 +1,26 @@
-// Props live here to keep the component self-contained; move them to ./types if you prefer.
+import { TERRITORIES, TerritoryKey } from "@/pages/phones/types";
+
 interface TerritorySwitchProps {
-    // A tuple, not string[]: the compiler enforces exactly two options.
-    options: readonly [string, string];
-    value: string;                     // the chosen option, owned by the parent
-    onChange: (value: string) => void; // the parent decides what a switch means
+    // `typeof` turns the runtime object into its type: { readonly ekb: 'ЕКБ'; readonly krg: 'КРГ' }.
+    // A bare TERRITORIES here is a value, and values can't be used as types.
+    options: typeof TERRITORIES;
+    value: TerritoryKey;                       // 'ekb' | 'krg', the key, never the label
+    onChange: (value: TerritoryKey) => void;   // passes the key up; the parent decides what it means
     isAuthenticated: boolean;
 }
 
 export function TerritorySwitch({ options, value, onChange, isAuthenticated }: TerritorySwitchProps) {
-    // The "other" option. If value is the first one, go to the second; for anything
-    // else (including an unknown value) go to the first, so a click always lands
-    // on a valid option.
-    const next = value === options[0] ? options[1] : options[0];
+    // Object.keys() is typed string[]; the cast is safe because options is TERRITORIES.
+    const keys = Object.keys(options) as TerritoryKey[];
+
+    // The next key, wrapping around. Replaces the options[0]/options[1] logic, which
+    // only worked for exactly two entries. An unknown value gives indexOf = -1,
+    // so (-1 + 1) % length = 0 and a click still lands on the first valid key.
+    const nextKey = keys[(keys.indexOf(value) + 1) % keys.length];
+
+    // Labels for display and screen readers. The key is only ever passed to onChange.
+    const label = options[value];
+    const nextLabel = options[nextKey];
 
     return (
         <button
@@ -23,13 +32,13 @@ export function TerritorySwitch({ options, value, onChange, isAuthenticated }: T
             disabled={!isAuthenticated}
             onClick={() => {
                 if (isAuthenticated) {
-                    onChange(next);
+                    onChange(nextKey); // the key ('krg'), not the label ('КРГ')
                 }
             }}
-            // The visible text is only the current option, so for a logged-in user the
-            // label spells out what the click does. A guest gets no promise of an action.
-            aria-label={isAuthenticated ? `Территория: ${value}. Переключить на ${next}` : `Территория: ${value}`}
-            title={isAuthenticated ? `Переключить на ${next}` : undefined}
+            // The visible text is only the current label, so for a logged-in user the
+            // aria-label spells out what the click does. A guest gets no promise of an action.
+            aria-label={isAuthenticated ? `Территория: ${label}. Переключить на ${nextLabel}` : `Территория: ${label}`}
+            title={isAuthenticated ? `Переключить на ${nextLabel}` : undefined}
             // Same recipe as the pager buttons: dark fill, thin gray border, light text.
             // self-stretch: same height as the row it sits in (the row must be a flex
             // container). min-w stops the width from jumping when the two labels differ
@@ -44,7 +53,7 @@ export function TerritorySwitch({ options, value, onChange, isAuthenticated }: T
             ].join(' ')}
             style={{ fontFamily: '"Courier New", Courier, monospace' }}
         >
-            {value}
+            {label}
 
             {/* Swap icon as an SVG: a font glyph for arrows can render differently
                 depending on which fallback font the browser picks. Guests don't get it,

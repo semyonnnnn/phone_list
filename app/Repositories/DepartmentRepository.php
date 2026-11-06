@@ -42,13 +42,26 @@ class DepartmentRepository
             ->all();
     }
 
-    public function syncByName(array $names): array
+    public function syncByName(array $names, string $territory): array
     {
         $ids = [];
 
         foreach ($names as $name) {
-            // Finds a department by name (case-insensitive because of the _ci column), or creates it.
-            $ids[$name] = Department::firstOrCreate(['name' => $name])->id;
+            $department = Department::where('name', $name)
+                ->where('territory', $territory)
+                ->first();
+
+            if (!$department) {
+                $department = new Department();
+
+                $department->name = $name;
+                $department->territory = $territory;
+
+
+                $department->save();
+            }
+
+            $ids[$name] = $department->id;
         }
 
         return $ids;

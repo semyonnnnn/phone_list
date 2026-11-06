@@ -3,7 +3,8 @@ import { DepCardProps } from './types';
 import { useDepCard } from './useDepCard';
 import { GroupNameInput } from './GroupNameInput';
 import { DebouncedInput } from './DebouncedInput';
-import { TerritorySwitch } from '@/components/TerritorySwitch';
+import { TerritorySwitch } from '@/components/custom/TerritorySwitch';
+import { TERRITORIES } from '../../types';
 
 export default function DepCard({
     dep,
@@ -17,7 +18,7 @@ export default function DepCard({
     bossChanged,
     isMiniBossChanged,
     errors,
-    territories, // CHANGED: the two options, from the backend via the page
+    territories,
     handleTerritoryChange,
 }: DepCardProps) {
     const {
@@ -29,7 +30,6 @@ export default function DepCard({
         isMiniBossChecked,
         isBossPickDisabled,
         isMiniBossPickDisabled,
-        isModalOpen,
         bossServerError,
         miniBossServerError,
         hasServerError,
@@ -37,7 +37,6 @@ export default function DepCard({
         handleIsMiniBossButtonClick,
         handleBossRadioChange,
         handleMiniBossCheckboxToggle,
-        handleGroupSubmit,
         handleGroupKeyDown,
     } = useDepCard(dep, depIndex, isAuthenticated, errors, onFieldChange, onBossChange, onGroupNameChange, onEditBoss, onEditIsMiniBoss);
 
@@ -55,7 +54,6 @@ export default function DepCard({
     // CHANGED: the server error for the name now lives under the nested key
     const groupError = errors?.[`departments.${depIndex}.group.name`];
 
-    console.log(sortedPhonesWithIndices);
 
     return (
         <div className="relative mb-12">
@@ -100,7 +98,7 @@ export default function DepCard({
                         </div>
                         {/* CHANGED: options and value now come from data, nothing is hardcoded */}
                         <TerritorySwitch
-                            options={territories}
+                            options={TERRITORIES}
                             value={dep.group.territory}
                             isAuthenticated={isAuthenticated}
                             onChange={(territory) => handleTerritoryChange(depIndex, territory)}
