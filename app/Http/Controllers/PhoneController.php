@@ -47,8 +47,10 @@ class PhoneController extends Controller
     /**
      * Update multiple phone records in bulk using the custom FormRequest.
      */
+    // PhoneUpdateRequest
     public function update(PhoneUpdateRequest $r, PhoneService $phones)
     {
+        // dd('hi');
         // A name clash throws a ValidationException from the service. Laravel turns
         // it into the same redirect-back-with-errors that back()->withErrors() gave,
         // so useForm's `errors` and the card's error display keep working.

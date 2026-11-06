@@ -16,18 +16,21 @@ class PhoneUpdateRequest extends FormRequest
     {
         return [
             'departments' => ['required', 'array'],
-            'departments.*.group' => ['sometimes', 'string', 'max:255'],
+
+            // Validate group as an array with its sub-attributes
+            'departments.*.group' => ['sometimes', 'array'],
+            'departments.*.group.name' => ['sometimes', 'string', 'max:255'],
+            'departments.*.group.territory' => ['sometimes', 'string', 'max:255'],
 
             'departments.*.phones' => ['sometimes', 'array'],
 
             'departments.*.phones.*.id' => ['required_with:departments.*.phones', 'integer', 'exists:phones,id'],
 
-            // Fields that come from the file. The update() method never writes them,
-            // so these rules only check the payload shape. nullable is needed because
-            // Laravel's ConvertEmptyStringsToNull middleware turns '' into null.
+            // Fields that come from the file.
             'departments.*.phones.*.person' => ['nullable', 'string', 'max:255'],
             'departments.*.phones.*.phone' => ['nullable', 'string', 'max:255'],
             'departments.*.phones.*.extension' => ['nullable', 'string', 'max:255'],
+            'departments.*.phones.*.file_id' => ['nullable', 'string', 'max:255'],
 
             // Fields the user edits.
             'departments.*.phones.*.cabinet' => ['nullable', 'string', 'max:255'],
@@ -35,8 +38,6 @@ class PhoneUpdateRequest extends FormRequest
             'departments.*.phones.*.isBoss' => ['nullable', 'boolean'],
             'departments.*.phones.*.isMiniBoss' => ['nullable', 'boolean'],
 
-            // Integer only, with no exists:. update() ignores this field and looks the
-            // department up itself, and exists: would run one extra query per phone.
             'departments.*.phones.*.department_id' => ['nullable', 'integer'],
         ];
     }
@@ -47,8 +48,11 @@ class PhoneUpdateRequest extends FormRequest
             'departments.required' => 'Поле отделов обязательно.',
             'departments.array' => 'Поле отделов должно быть массивом.',
 
-            'departments.*.group.string' => 'Поле названия отдела должно быть строкой.',
-            'departments.*.group.max' => 'Название отдела не должно превышать 255 символов.',
+            'departments.*.group.array' => 'Поле группы отдела должно быть массивом.',
+            'departments.*.group.name.string' => 'Поле названия отдела должно быть строкой.',
+            'departments.*.group.name.max' => 'Название отдела не должно превышать 255 символов.',
+            'departments.*.group.territory.string' => 'Поле территории должно быть строкой.',
+            'departments.*.group.territory.max' => 'Территория не должна превышать 255 символов.',
 
             'departments.*.phones.array' => 'Поле телефонов должно быть массивом.',
 
@@ -62,6 +66,8 @@ class PhoneUpdateRequest extends FormRequest
             'departments.*.phones.*.phone.max' => 'Поле "Телефон" не должно превышать 255 символов.',
             'departments.*.phones.*.extension.string' => 'Поле "Добавочный номер" должно быть строкой.',
             'departments.*.phones.*.extension.max' => 'Поле "Добавочный номер" не должно превышать 255 символов.',
+            'departments.*.phones.*.file_id.string' => 'Поле "Идентификатор файла" должно быть строкой.',
+            'departments.*.phones.*.file_id.max' => 'Поле "Идентификатор файла" не должно превышать 255 символов.',
 
             'departments.*.phones.*.cabinet.string' => 'Поле "Кабинет" должно быть строкой.',
             'departments.*.phones.*.cabinet.max' => 'Поле "Кабинет" не должно превышать 255 символов.',
