@@ -10,6 +10,7 @@ use RuntimeException;
 ///////////////////////////////////
 use App\Repositories\PhoneRepository;
 use App\Repositories\DepartmentRepository;
+use App\Models\Department;
 
 class PhoneService
 {
@@ -21,9 +22,38 @@ class PhoneService
 
     // Types are `mixed` on purpose: the controller passes $request->input() straight
     // through, exactly as before, so behavior is unchanged.
-    public function index(mixed $search, mixed $departmentFilter): array
+    public function index(mixed $search, mixed $department): array
     {
-        return $this->getPage($search, $departmentFilter);
+
+        $paginated = $this->phoneRepository->paginate($search, $department, 15);
+
+        // The rows arrive already ordered, and groupBy keeps first-appearance order,
+        // so the departments come out in the right order without sorting again.
+        $departments = $paginated
+            ->getCollection()
+            ->groupBy('department_id')
+            ->map(fn($group) => [
+                'group' => [
+                    // every phone in the group carries the same department fields, so the first is enough
+                    'name'      => $group->first()->group,
+                    'territory' => $group->first()->territory,
+                ],
+                'phones' => $group->values()->all(),
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'departments' => $departments,
+            'allGroups' => $this->departmentRepository->namesOrdered(),
+            'totalDatabaseCount' => $this->phoneRepository->count(),
+            'pagination' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'links' => $paginated->linkCollection(),
+                'total' => $paginated->total(),
+            ],
+        ];
     }
 
     public function upload(UploadedFile $file, string $territory): void
@@ -140,7 +170,7 @@ class PhoneService
             // Two departments renamed to the same name in one save. The DB can't see
             // this yet, because neither rename has been written. mb_strtolower is only
             // an approximation of the collation; the unique index stays the backstop.
-            $key = mb_strtolower($group['name']);
+            $key = mb_strtolower($group['name']) . '|' . strtolower($group['territory']);
             $takenInPayload = isset($seenNames[$key]);
             $seenNames[$key] = true;
 
@@ -212,39 +242,5 @@ class PhoneService
     {
         // trim() added: the queries no longer call TRIM(), so stray spaces must never reach the database.
         return trim(strip_tags((string) $value));
-    }
-
-    public function getPage(?string $search, ?string $department): array
-    {
-
-        $paginated = $this->phoneRepository->paginate($search, $department, 15);
-
-        // The rows arrive already ordered, and groupBy keeps first-appearance order,
-        // so the departments come out in the right order without sorting again.
-        $departments = $paginated
-            ->getCollection()
-            ->groupBy('group')
-            ->map(fn($group) => [
-                'group' => [
-                    // every phone in the group carries the same department fields, so the first is enough
-                    'name'      => $group->first()->group,
-                    'territory' => $group->first()->territory,
-                ],
-                'phones' => $group->values()->all(),
-            ])
-            ->values()
-            ->all();
-
-        return [
-            'departments' => $departments,
-            'allGroups' => $this->departmentRepository->namesOrdered(),
-            'totalDatabaseCount' => $this->phoneRepository->count(),
-            'pagination' => [
-                'current_page' => $paginated->currentPage(),
-                'last_page' => $paginated->lastPage(),
-                'links' => $paginated->linkCollection(),
-                'total' => $paginated->total(),
-            ],
-        ];
     }
 }

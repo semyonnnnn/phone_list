@@ -2,10 +2,12 @@
 
 namespace App\Repositories;
 
-use App\Models\Phone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+///////////////////////////////////////////////
+use App\Models\Phone;
 use App\Models\Department;
+use App\Enums\Territory;
 
 class PhoneRepository
 {
@@ -73,6 +75,16 @@ class PhoneRepository
         $query = Phone::query()
             ->join('departments', 'departments.id', '=', 'phones.department_id')
             ->select('phones.*', 'departments.name as group', 'departments.territory as territory');
+
+        $territories = Territory::keys();
+
+        $placeholders = implode(', ', array_fill(0, count($territories), '?'));
+
+        $query
+            ->orderByRaw("FIELD(departments.territory, {$placeholders})", $territories)
+            ->orderByRaw('departments.name = ? DESC', [Department::getFirst()])
+            ->orderBy('departments.name')
+            ->orderBy('departments.id');
 
         if ($search) {
             // No mb_strtolower and no LOWER(): LIKE on a _ci column is already case-insensitive for Cyrillic.
