@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Department;
+use App\Enums\Territory;
 
 class DepartmentRepository
 {
@@ -35,11 +36,18 @@ class DepartmentRepository
 
     public function namesOrdered(): array
     {
-        // Same trick as in paginate(), so the dropdown and the page list agree on the order.
-        return Department::orderByRaw('name = ? DESC', [Department::getFirst()])
+        $territories = Territory::keys();
+        $placeholders = implode(', ', array_fill(0, count($territories), '?'));
+
+        return Department::orderByRaw(
+            "FIELD(territory, {$placeholders})",
+            $territories
+        )
+            ->orderByRaw('name = ? DESC', [Department::getFirst()])
             ->orderBy('name')
-            ->pluck('name')
-            ->all();
+            ->orderBy('id')
+            ->get(['id', 'name', 'territory'])
+            ->toArray();
     }
 
     public function syncByName(array $names, string $territory): array

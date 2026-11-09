@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
 import { PhoneRecord, PageProps, DepartmentOption, PhoneForm, DEFAULT_TERRITORY, TerritoryKey } from './types';
+import { DepartmentValue } from './partials/DepartmentDropdown/types';
 
 export function usePhoneDirectory(
     initialDeps: PageProps['departments'],
     filters: PageProps['filters'],
     flash: PageProps['flash'],
-    allGroups?: string[]
+    allGroups?: DepartmentValue[]
 ) {
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
     const [selectedOption, setSelectedOption] = useState(filters?.department || 'Все отделы');
@@ -265,12 +266,20 @@ export function usePhoneDirectory(
     };
 
     const dropdownOptions: DepartmentOption[] = [
-        { label: 'Все отделы', value: { number: '', name: '' } },
-        ...(allGroups || []).map((groupName, i) => ({
-            label: groupName,
-            value: { number: String(i), name: groupName }
-        }))
+        {
+            label: 'Все отделы',
+            value: { number: '', name: '', territory: DEFAULT_TERRITORY },
+        },
+        ...(allGroups || []).map((group) => ({
+            label: group.name,
+            value: {
+                number: String(group.id),
+                name: group.name,
+                territory: group.territory as TerritoryKey, // 👈 Add type assertion here
+            },
+        })),
     ];
+
     const handleGroupNameChange = (depIndex: number, newGroupName: string) => {
         const updatedDeps = [...data.departments];
 
@@ -288,7 +297,7 @@ export function usePhoneDirectory(
         clearErrors(`departments.${depIndex}.group.name` as any);
     };
 
-    const handleTerritoryChange = (depIndex: number, territory: string) => {
+    const handleTerritoryChange = (depIndex: number, territory: 'ekb' | 'krg') => {
         const updatedDeps = [...data.departments];
 
         updatedDeps[depIndex] = {

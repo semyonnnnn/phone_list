@@ -56,13 +56,19 @@ export default function DepartmentDropdown({
                     }}
                 >
                     {dynamicOptions.length > 0 ? (
-                        dynamicOptions.map((opt, idx) => (
+                        dynamicOptions.map((opt) => (
                             <div
-                                key={idx}
+                                key={opt.value.number || 'all'}
                                 onClick={() => handleOptionClick(opt)}
-                                className="p-2.5 text-[1.15rem] cursor-pointer border-b border-[#333] last:border-b-0 text-[#f5f5f5] hover:bg-[#667] hover:text-white transition-colors"
+                                className="flex justify-between items-center p-2.5 text-[1.15rem] cursor-pointer border-b border-[#333] last:border-b-0 text-[#f5f5f5] hover:bg-[#667] hover:text-white transition-colors"
                             >
-                                {opt.label}
+                                <span>{opt.label}</span>
+
+                                {opt.value.number && (
+                                    <span className="text-sm text-[#aaa] ml-3">
+                                        {opt.value.territory === 'ekb' ? 'ЕКБ' : 'КРГ'}
+                                    </span>
+                                )}
                             </div>
                         ))
                     ) : (

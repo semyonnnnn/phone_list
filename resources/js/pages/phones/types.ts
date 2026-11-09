@@ -12,9 +12,10 @@ export interface PhoneRecord {
     [key: string]: any;
 }
 
-export interface DepartmentValue {
+interface DepartmentValue {
     number: string;
     name: string;
+    territory: TerritoryKey;
 }
 
 export interface DepartmentOption {
@@ -44,7 +45,11 @@ export interface PageProps {
         };
         error?: string;
     };
-    allGroups?: string[];
+    allGroups?: Array<{
+        id: number | string;
+        name: string;
+        territory: TerritoryKey;
+    }>;
     totalDatabaseCount?: number;
     pagination?: {
         current_page: number;
