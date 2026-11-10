@@ -6,7 +6,10 @@ import DepCard from './partials/DepCard';
 import DepartmentDropdown from './partials/DepartmentDropdown';
 import { PopUp } from './partials/PopUp';
 import { usePhoneDirectory } from './usePhoneDirectory';
+// Department and DepartmentValue imports removed: `dep` is now inferred
+// from data.departments, so neither is needed here.
 import { DepartmentOption, PageProps } from './types';
+import { GlobalSwitch } from './GlobalSwitch';
 
 // Static, so it lives outside the component: built once instead of on every render.
 const PAGE_STYLE: React.CSSProperties = {
@@ -89,6 +92,8 @@ export default function Index({
         handleGroupNameChange,
         handleTerritoryChange,
         handleTerritoryUpload,
+        globalTerritoryValue,
+        onChangeGlobalTerritoryValue,
     } = usePhoneDirectory(departments, filters, flash, allGroups);
 
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
@@ -187,6 +192,11 @@ export default function Index({
                             setSelectedOption(option.label);
                         }}
                     />
+
+                    <GlobalSwitch
+                        globalTerritoryValue={globalTerritoryValue}
+                        onChangeGlobalTerritoryValue={onChangeGlobalTerritoryValue}
+                    />
                 </div>
 
                 <div className="relative z-10 flex items-center gap-2">
@@ -270,10 +280,10 @@ export default function Index({
                         {renderPagination()}
 
                         <div className="space-y-8">
-                            {/* .map already supplies the index, so there is no findIndex by name.
-                                That lookup returned the FIRST card with the same name, so two
-                                departments sharing a name got the same depIndex and the same key,
-                                and edits and server errors landed on the wrong card. */}
+                            {/* .map passes two positional arguments: the element and its index.
+                                `dep` is inferred as Department ({ group, phones }) from
+                                data.departments, which is exactly what DepCard's `dep` prop
+                                expects, so no annotation is needed. */}
                             {data.departments.map((dep, depIndex) => (
                                 <DepCard
                                     key={depIndex}

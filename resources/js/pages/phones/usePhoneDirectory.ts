@@ -1,18 +1,26 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
-import { PhoneRecord, PageProps, DepartmentOption, PhoneForm, DEFAULT_TERRITORY, TerritoryKey } from './types';
-import { DepartmentValue } from './partials/DepartmentDropdown/types';
+import { PhoneRecord, PageProps, DepartmentOption, PhoneForm } from './types';
+import { DEFAULT_TERRITORY, TerritoryKey, GlobalTerritoryKey } from '@/types';
 
 export function usePhoneDirectory(
     initialDeps: PageProps['departments'],
     filters: PageProps['filters'],
     flash: PageProps['flash'],
-    allGroups?: DepartmentValue[]
+    allGroups?: PageProps['allGroups']
 ) {
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
-    const [selectedOption, setSelectedOption] = useState(filters?.department || 'Все отделы');
+    const [selectedOption, setSelectedOption] = useState(filters?.department ?? 'Все отделы');
     const [searchQuery, setSearchQuery] = useState(filters?.search || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // 'all' means no territory filter. Separate from data.territory (the upload
+    // target), which must always be a real TerritoryKey.
+    // Starts from what the server applied, so a reload or a pagination link keeps the filter.
+    // Explicit generic: without it TypeScript infers a wide type from the fallback.
+    const [globalTerritoryValue, setGlobalTerritoryValue] = useState<GlobalTerritoryKey>(
+        filters?.territory ?? 'all'
+    );
 
     const [showSuccess, setShowSuccess] = useState(false);
     const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,22 +83,11 @@ export function usePhoneDirectory(
         territory: DEFAULT_TERRITORY,
     });
     const errorBag = errors as unknown as Record<string, string>;
-
-    // Server-side validation errors from the last response. They live in the page props
-    // next to `departments`, so both are visible in the same render. The double cast
-    // is needed because Inertia's default PageProps type doesn't declare `errors`.
     const page = usePage();
     const pageErrors = (page.props as unknown as { errors?: Record<string, string> }).errors;
 
-    // Copies the server's departments into the form whenever a new array arrives.
     useEffect(() => {
         if (!initialDeps) return;
-
-        // A rejected save comes back as a redirect that re-sends `departments` from the
-        // DB (a NEW array, so this effect fires) together with a non-empty `errors` prop.
-        // Overwriting the form now would wipe the name you typed and make hasChanges
-        // false, so the prompt would vanish. Skip the sync while errors are present;
-        // the next response without errors (a good save, Cancel, a search) syncs again.
         if (pageErrors && Object.keys(pageErrors).length > 0) return;
 
         setData('departments', initialDeps);
@@ -123,19 +120,26 @@ export function usePhoneDirectory(
         setData('territory', territory);
     };
 
-    // Debounced search/department filter: asks the server for a new page 350 ms
-    // after the last change, and only if something differs from the current filters.
+    const onChangeGlobalTerritoryValue = (value: GlobalTerritoryKey) => {
+        setGlobalTerritoryValue(value);
+    };
+
     useEffect(() => {
         const timer = setTimeout(() => {
-            const currentSearch = filters?.search || '';
-            const currentDep = filters?.department || 'Все отделы';
+            const currentSearch = filters?.search ?? '';
+            const currentDep = filters?.department ?? 'Все отделы';
+            const currentTerritory = filters?.territory ?? 'all';
 
-            if (searchQuery !== currentSearch || selectedOption !== currentDep) {
+            if (searchQuery !== currentSearch ||
+                selectedOption !== currentDep ||
+                globalTerritoryValue !== currentTerritory
+            ) {
                 router.get(
                     route('phones.index'),
                     {
                         search: searchQuery,
-                        department: selectedOption === 'Все отделы' ? '' : selectedOption
+                        department: selectedOption === 'Все отделы' ? '' : selectedOption,
+                        territory: globalTerritoryValue
                     },
                     {
                         preserveState: true,
@@ -147,19 +151,13 @@ export function usePhoneDirectory(
         }, 350);
 
         return () => clearTimeout(timer);
-    }, [searchQuery, selectedOption]);
+    }, [searchQuery, selectedOption, globalTerritoryValue]);
 
-    // Both sides are plain JSON data, so comparing their serialized form is enough.
-    // The old parse(stringify(x)) round trip produced exactly the same string again,
-    // at the cost of extra passes over the whole page on every committed edit.
     const hasChanges = useMemo(
         () => JSON.stringify(data.departments) !== JSON.stringify(originalDeps),
         [data.departments, originalDeps]
     );
 
-    // NOTE: unchanged on purpose. It still reads the old alias fields (is_boss, nach,
-    // is_miniboss, zam, is_zam), which your data never contains, so both flags are
-    // always false and the red dots never show. Fixing it changes visible behavior.
     const { bossChanged, isMiniBossChanged } = useMemo(() => {
         let boss = false;
         let miniBoss = false;
@@ -268,15 +266,14 @@ export function usePhoneDirectory(
     const dropdownOptions: DepartmentOption[] = [
         {
             label: 'Все отделы',
-            value: { number: '', name: '', territory: DEFAULT_TERRITORY },
+            // id 0 is a placeholder: "all departments" isn't a real group.
+            value: { id: 0, name: '', territory: DEFAULT_TERRITORY },
         },
         ...(allGroups || []).map((group) => ({
             label: group.name,
-            value: {
-                number: String(group.id),
-                name: group.name,
-                territory: group.territory as TerritoryKey, // 👈 Add type assertion here
-            },
+            // The group already has the shape DepartmentOption expects,
+            // so there is no manual rebuild and no `as TerritoryKey` cast.
+            value: group,
         })),
     ];
 
@@ -297,7 +294,7 @@ export function usePhoneDirectory(
         clearErrors(`departments.${depIndex}.group.name` as any);
     };
 
-    const handleTerritoryChange = (depIndex: number, territory: 'ekb' | 'krg') => {
+    const handleTerritoryChange = (depIndex: number, territory: TerritoryKey) => {
         const updatedDeps = [...data.departments];
 
         updatedDeps[depIndex] = {
@@ -335,5 +332,7 @@ export function usePhoneDirectory(
         handleGroupNameChange,
         handleTerritoryChange,
         handleTerritoryUpload,
+        globalTerritoryValue,
+        onChangeGlobalTerritoryValue,
     };
 }

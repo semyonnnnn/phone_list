@@ -3,8 +3,7 @@ import { DepCardProps } from './types';
 import { useDepCard } from './useDepCard';
 import { GroupNameInput } from './GroupNameInput';
 import { DebouncedInput } from './DebouncedInput';
-import { TerritorySwitch } from '@/components/custom/TerritorySwitch';
-import { TERRITORIES } from '../../types';
+import { TerritorySwitch } from './TerritorySwitch';
 
 export default function DepCard({
     dep,
@@ -98,7 +97,6 @@ export default function DepCard({
                         </div>
                         {/* CHANGED: options and value now come from data, nothing is hardcoded */}
                         <TerritorySwitch
-                            options={TERRITORIES}
                             value={dep.group.territory}
                             isAuthenticated={isAuthenticated}
                             onChange={(territory) => handleTerritoryChange(depIndex, territory)}

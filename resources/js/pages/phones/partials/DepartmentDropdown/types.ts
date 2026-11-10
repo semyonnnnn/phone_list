@@ -2,7 +2,6 @@ import { DepartmentOption } from "../../types";
 
 export interface DepartmentValue {
     id: number,
-    number: string;
     name: string;
     territory: string;
 }

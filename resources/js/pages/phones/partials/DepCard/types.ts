@@ -1,4 +1,4 @@
-import type { TerritoryKey } from '@/pages/phones/types';
+import type { TerritoryKey } from '@/types';
 export interface PhoneRecord {
     id?: number;
     person: string;
@@ -62,3 +62,9 @@ export type DepartmentGroup = {
     name: string;
     territory: TerritoryKey; // was string
 };
+
+export interface TerritorySwitchProps {
+    value: TerritoryKey;
+    onChange: (value: TerritoryKey) => void;
+    isAuthenticated: boolean;
+}

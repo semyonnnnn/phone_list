@@ -9,19 +9,21 @@ use Inertia\Inertia;
 use App\Http\Requests\PhoneUpdateRequest;
 use App\Services\PhoneService;
 use App\Enums\Territory;
+use App\Http\Requests\PhoneIndexRequest;
 
 class PhoneController extends Controller
 {
     /**
      * Display the main view with paginated phone records, search, and auth data.
      */
-    public function index(Request $request, PhoneService $phones)
+    public function index(PhoneIndexRequest $r, PhoneService $phones)
     {
         $userId = Auth::id();
-        $search = $request->input('search');
-        $departmentFilter = $request->input('department');
+        $search = $r->input('search');
+        $departmentFilter = $r->input('department');
+        $territory = $r->input('territory');
 
-        $page = $phones->index($search, $departmentFilter);
+        $page = $phones->index($search, $departmentFilter, $territory);
 
         return Inertia::render('phones/index', [
             'auth' => [
@@ -29,7 +31,6 @@ class PhoneController extends Controller
                 'is_authenticated' => $userId !== null,
             ],
 
-            // Listed one by one (not spread) so you can see every prop the page receives.
             'departments' => $page['departments'],
             'allGroups' => $page['allGroups'],
             'totalDatabaseCount' => $page['totalDatabaseCount'],
@@ -38,6 +39,9 @@ class PhoneController extends Controller
             'filters' => [
                 'search' => $search,
                 'department' => $departmentFilter,
+                // The hook compares its switch state with this value. Without it,
+                // the hook always falls back to 'all' and never sends 'all' as a change.
+                'territory' => $territory,
             ],
 
             'territories' => Territory::keys(),

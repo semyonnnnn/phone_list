@@ -1,5 +1,7 @@
 import { DepartmentGroup } from './partials/DepCard/types';
 import { DepartmentValue } from './partials/DepartmentDropdown/types';
+import { GlobalTerritoryKey, TerritoryKey } from "@/types";
+
 export interface PhoneRecord {
     id?: number;
     person: string;
@@ -11,6 +13,13 @@ export interface PhoneRecord {
     is_boss?: boolean;
     is_miniboss?: boolean;
     [key: string]: any;
+}
+
+// One department card: its group plus its phone rows. Defined once so
+// PageProps and PhoneForm can't drift apart.
+export interface Department {
+    group: DepartmentGroup;
+    phones: PhoneRecord[];
 }
 
 export interface DepartmentOption {
@@ -29,10 +38,7 @@ export interface PageProps {
         is_authenticated: boolean;
         user_id?: number | null;
     };
-    departments: Array<{
-        group: DepartmentGroup;
-        phones: PhoneRecord[];
-    }>;
+    departments: Department[];
     flash?: {
         success?: {
             message: string;
@@ -51,26 +57,17 @@ export interface PageProps {
     filters?: {
         search?: string;
         department?: string;
+        territory?: GlobalTerritoryKey;
     };
     [key: string]: any;
 }
 
-
-
-export const TERRITORIES = {
-    ekb: 'ЕКБ',
-    krg: 'КРГ',
-} as const;
-
-export type TerritoryKey = keyof typeof TERRITORIES
-
+// Form shape for useForm<PhoneForm>. Without this export, `data` in the hook
+// became `any`, and that caused the "implicitly has an 'any' type" errors.
+// `territory` is TerritoryKey, not GlobalTerritoryKey: it is the upload target,
+// and 'all' is not a valid target.
 export interface PhoneForm {
-    departments: {
-        group: DepartmentGroup;
-        phones: PhoneRecord[];
-    }[];
+    departments: Department[];
     territory: TerritoryKey;
-    [key: string]: any; // <--- Satisfies Inertia's FormDataType constraint
+    [key: string]: any; // satisfies Inertia's FormDataType constraint
 }
-
-export const DEFAULT_TERRITORY = Object.keys(TERRITORIES)[0] as TerritoryKey;

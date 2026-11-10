@@ -1,26 +1,21 @@
-import { TERRITORIES, TerritoryKey } from "@/pages/phones/types";
+import { TERRITORIES, TerritoryKey } from "@/types";
+import { TerritorySwitchProps } from "./types";
 
-interface TerritorySwitchProps {
-    // `typeof` turns the runtime object into its type: { readonly ekb: 'ЕКБ'; readonly krg: 'КРГ' }.
-    // A bare TERRITORIES here is a value, and values can't be used as types.
-    options: typeof TERRITORIES;
-    value: TerritoryKey;                       // 'ekb' | 'krg', the key, never the label
-    onChange: (value: TerritoryKey) => void;   // passes the key up; the parent decides what it means
-    isAuthenticated: boolean;
-}
 
-export function TerritorySwitch({ options, value, onChange, isAuthenticated }: TerritorySwitchProps) {
-    // Object.keys() is typed string[]; the cast is safe because options is TERRITORIES.
-    const keys = Object.keys(options) as TerritoryKey[];
 
-    // The next key, wrapping around. Replaces the options[0]/options[1] logic, which
+
+export function TerritorySwitch({ value, onChange, isAuthenticated }: TerritorySwitchProps) {
+    // Object.keys() is typed string[]; the cast is safe because TERRITORIES is TERRITORIES.
+    const keys = Object.keys(TERRITORIES) as TerritoryKey[];
+
+    // The next key, wrapping around. Replaces the TERRITORIES[0]/TERRITORIES[1] logic, which
     // only worked for exactly two entries. An unknown value gives indexOf = -1,
     // so (-1 + 1) % length = 0 and a click still lands on the first valid key.
     const nextKey = keys[(keys.indexOf(value) + 1) % keys.length];
 
     // Labels for display and screen readers. The key is only ever passed to onChange.
-    const label = options[value];
-    const nextLabel = options[nextKey];
+    const label = TERRITORIES[value];
+    const nextLabel = TERRITORIES[nextKey];
 
     return (
         <button

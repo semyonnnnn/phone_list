@@ -1,3 +1,4 @@
+import { DepartmentGroup, PhoneRecord } from '@/pages/phones/partials/DepCard/types';
 import { LucideIcon } from 'lucide-react';
 
 export interface User {
@@ -37,4 +38,34 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     [key: string]: unknown;
+}
+
+export const TERRITORIES = {
+    ekb: 'ЕКБ',
+    krg: 'КРГ',
+} as const;
+
+export const GLOBAL_TERRITORIES = {
+    ekb: 'ЕКБ',
+    krg: 'КРГ',
+    all: 'ВСЕ'
+} as const;
+
+export type TerritoryKey = keyof typeof TERRITORIES;
+export type GlobalTerritoryKey = keyof typeof GLOBAL_TERRITORIES;
+
+export interface PhoneForm {
+    departments: {
+        group: DepartmentGroup;
+        phones: PhoneRecord[];
+    }[];
+    territory: TerritoryKey;
+    [key: string]: any; // <--- Satisfies Inertia's FormDataType constraint
+}
+
+export const DEFAULT_TERRITORY = Object.keys(TERRITORIES)[0] as TerritoryKey;
+
+export interface GlobalSwitchProps {
+    globalTerritoryValue: GlobalTerritoryKey;
+    onChangeGlobalTerritoryValue: (globalTerritoryValue: GlobalTerritoryKey) => void;
 }

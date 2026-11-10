@@ -22,10 +22,10 @@ class PhoneService
 
     // Types are `mixed` on purpose: the controller passes $request->input() straight
     // through, exactly as before, so behavior is unchanged.
-    public function index(mixed $search, mixed $department): array
+    public function index(mixed $search, mixed $department, string $territory): array
     {
 
-        $paginated = $this->phoneRepository->paginate($search, $department, 15);
+        $paginated = $this->phoneRepository->paginate($search, $department, $territory, 15);
 
         // The rows arrive already ordered, and groupBy keeps first-appearance order,
         // so the departments come out in the right order without sorting again.

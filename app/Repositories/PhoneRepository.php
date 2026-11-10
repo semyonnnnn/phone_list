@@ -70,24 +70,32 @@ class PhoneRepository
     /**
      * One page of phones, each with its department name available as `group`.
      */
-    public function paginate(?string $search, ?string $department, int $perPage): LengthAwarePaginator
+    public function paginate(?string $search, ?string $department, ?string $territory, int $perPage): LengthAwarePaginator
     {
         $query = Phone::query()
             ->join('departments', 'departments.id', '=', 'phones.department_id')
             ->select('phones.*', 'departments.name as group', 'departments.territory as territory');
 
-        $territories = Territory::keys();
+        // 'all' is not a stored value, so it must never reach a where().
+        // 'ekb' / 'krg' add a condition, 'all' (or null) adds nothing, which means
+        // rows from both territories come back. Territory::keys() is the whitelist:
+        // the FormRequest already enforced it, this is just the "is it a real
+        // territory?" check, so a future 'all'-like value can't leak into SQL.
+        if ($territory !== null && in_array($territory, Territory::keys(), true)) {
+            $query->where('departments.territory', $territory);
+        }
 
+        $territories = Territory::keys();
         $placeholders = implode(', ', array_fill(0, count($territories), '?'));
 
         $query
             ->orderByRaw("FIELD(departments.territory, {$placeholders})", $territories)
+            ->orderByRaw('departments.territory = ? DESC', [Department::getFirst()])
             ->orderByRaw('departments.name = ? DESC', [Department::getFirst()])
             ->orderBy('departments.name')
             ->orderBy('departments.id');
 
         if ($search) {
-            // No mb_strtolower and no LOWER(): LIKE on a _ci column is already case-insensitive for Cyrillic.
             $term = '%' . trim($search) . '%';
 
             $query->where(function ($q) use ($term) {
@@ -96,15 +104,8 @@ class PhoneRepository
                     ->orWhere('departments.name', 'like', $term);
             });
         } elseif ($department && $department !== 'Все отделы') {
-            // Plain "=": the collation makes it case-insensitive. Search still wins over this filter (elseif).
             $query->where('departments.name', trim($department));
         }
-
-        // The only raw SQL left. `name = ?` evaluates to 1 for Руководство and 0 for everything else,
-        // so DESC puts it first. Because the column is _ci, the case of the stored name doesn't matter.
-        // It replaces the old CASE WHEN LOWER(TRIM(...)) block.
-        $query->orderByRaw('departments.name = ? DESC', [Department::getFirst()])
-            ->orderBy('departments.name');
 
         return $query->paginate($perPage)->withQueryString();
     }
