@@ -1,11 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link, router } from '@inertiajs/react';
 import DepartmentDropdown from '../pages/phones/partials/DepartmentDropdown';
-
-interface DepartmentValue {
-    number: string;
-    name: string;
-}
+import { DepartmentValue } from '@/pages/phones/partials/DepartmentDropdown/types';
 
 interface DepartmentOption {
     label: string;

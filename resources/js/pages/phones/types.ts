@@ -1,4 +1,5 @@
 import { DepartmentGroup } from './partials/DepCard/types';
+import { DepartmentValue } from './partials/DepartmentDropdown/types';
 export interface PhoneRecord {
     id?: number;
     person: string;
@@ -10,12 +11,6 @@ export interface PhoneRecord {
     is_boss?: boolean;
     is_miniboss?: boolean;
     [key: string]: any;
-}
-
-interface DepartmentValue {
-    number: string;
-    name: string;
-    territory: TerritoryKey;
 }
 
 export interface DepartmentOption {
@@ -45,11 +40,7 @@ export interface PageProps {
         };
         error?: string;
     };
-    allGroups?: Array<{
-        id: number | string;
-        name: string;
-        territory: TerritoryKey;
-    }>;
+    allGroups?: DepartmentValue[];
     totalDatabaseCount?: number;
     pagination?: {
         current_page: number;

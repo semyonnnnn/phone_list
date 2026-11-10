@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Option } from './types';
+import { DepartmentOption } from '../../types';
 
 export function useDepartmentDropdown(
-    options: Option[],
-    onSelect: (option: Option) => void
+    options: DepartmentOption[],
+    onSelect: (option: DepartmentOption) => void
 ) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [dynamicOptions, setDynamicOptions] = useState<Option[]>(options);
+    const [dynamicOptions, setDynamicOptions] = useState<DepartmentOption[]>(options);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -73,7 +74,7 @@ export function useDepartmentDropdown(
         }
     };
 
-    const handleOptionClick = (opt: Option) => {
+    const handleOptionClick = (opt: DepartmentOption) => {
         onSelect(opt);
         setIsOpen(false);
         setSearchQuery('');

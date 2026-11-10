@@ -1,3 +1,5 @@
+import { DepartmentOption } from "../../types";
+
 export interface DepartmentValue {
     id: number,
     number: string;
@@ -11,8 +13,8 @@ export interface Option {
 }
 
 export interface DepartmentDropdownProps {
-    options: Option[];
+    options: DepartmentOption[];
     selectedOption: string;
-    onSelect: (option: Option) => void;
+    onSelect: (option: DepartmentOption) => void;
     onSearch?: (query: string) => Promise<Option[]> | void;
 }

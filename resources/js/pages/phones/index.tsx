@@ -1,11 +1,12 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { UploadIcon } from "lucide-react";
+//////////////////////////////////////////////////
 import DepCard from './partials/DepCard';
 import DepartmentDropdown from './partials/DepartmentDropdown';
 import { PopUp } from './partials/PopUp';
 import { usePhoneDirectory } from './usePhoneDirectory';
-import { PageProps } from './types';
-import { UploadIcon } from "lucide-react";
+import { DepartmentOption, PageProps } from './types';
 
 // Static, so it lives outside the component: built once instead of on every render.
 const PAGE_STYLE: React.CSSProperties = {
@@ -182,7 +183,7 @@ export default function Index({
                     <DepartmentDropdown
                         options={dropdownOptions}
                         selectedOption={selectedOption}
-                        onSelect={(option) => {
+                        onSelect={(option: DepartmentOption) => {
                             setSelectedOption(option.label);
                         }}
                     />
