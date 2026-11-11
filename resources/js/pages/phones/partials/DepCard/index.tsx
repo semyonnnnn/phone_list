@@ -19,6 +19,7 @@ export default function DepCard({
     errors,
     territories,
     handleTerritoryChange,
+    departmentNameWidth,
 }: DepCardProps) {
     const {
         activeColumn,
@@ -52,6 +53,7 @@ export default function DepCard({
 
     // CHANGED: the server error for the name now lives under the nested key
     const groupError = errors?.[`departments.${depIndex}.group.name`];
+    const pencilSpace = isAuthenticated ? '27px + 0.5rem' : '0px';
 
 
     return (
@@ -68,11 +70,18 @@ export default function DepCard({
                     }}
                 >
                     <div className='flex'>
-                        <div className="bg-[#f5f5f5] inline-block px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]">
+                        <div
+                            className="bg-[#f5f5f5] inline-block shrink-0 box-border min-w-[12ch] px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]"
+                            style={{
+                                width: `calc(${departmentNameWidth}ch + ${pencilSpace})`,
+                                // was 36ch: this is the real upper limit of the box. 60ch fits ~60 chars of name.
+                                maxWidth: `calc(60ch + ${pencilSpace})`,
+                            }}
+                        >
                             {/* CHANGED: dep.group is an object now, the text is dep.group.name */}
                             {!isAuthenticated ? dep.group.name : (
                                 <div>
-                                    <div className="flex items-center gap-2 border-b border-black">
+                                    <div className="flex justify-between items-center gap-2 border-b border-black">
                                         {/* no onBlur prop: GroupNameInput already sends its pending text on blur */}
                                         <GroupNameInput
                                             value={groupName}

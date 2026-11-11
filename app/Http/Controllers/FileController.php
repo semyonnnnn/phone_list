@@ -29,37 +29,43 @@ class FileController extends Controller
 
     public function download()
     {
-        // 1. Fetch all phone records
-        $phones = Phone::all()->map(function ($phone) {
-            return [
-                'group'     => $phone->group,
-                'person'    => $phone->person,
-                'extension' => $phone->extension,
-                'phone'     => $phone->phone,
-                'cabinet'   => $phone->cabinet ?? '',
-                'ip'        => $phone->ip ?? '',
-                'isBoss'    => $phone->isBoss,
-                'isMiniBoss' => $phone->isMiniBoss,
-            ];
-        });
+        $phones = Phone::query()
+            ->join('departments', 'departments.id', '=', 'phones.department_id')
+            ->select(
+                'phones.*',
+                'departments.name as group',
+                'departments.id as department_id',   // grouping key for Python
+                'departments.territory as territory' // 'ekb' / 'krg', used to tell same-named departments apart
+            )
+            ->orderBy('phones.id') // stable row order inside each table
+            ->get()
+            ->map(function ($phone) {
+                return [
+                    'department_id' => $phone->department_id,
+                    'territory'     => $phone->territory,
+                    'group'         => $phone->group,
+                    'person'        => $phone->person,
+                    'extension'     => $phone->extension,
+                    'phone'         => $phone->phone,
+                    'cabinet'       => $phone->cabinet ?? '',
+                    'ip'            => $phone->ip ?? '',
+                    'isBoss'        => (bool) ($phone->is_boss ?? $phone->isBoss),
+                    'isMiniBoss'    => (bool) ($phone->is_miniboss ?? $phone->isMiniBoss),
+                ];
+            });
 
-        // 2. Send the records to your Python microservice endpoint
-        $response = Http::timeout(30)->post('http://10.166.20.85:5000/api/download', [
-            'phones' => $phones->toArray()
+        $response = Http::timeout(30)->post('http://python:5000/files/download', [
+            'phones' => $phones->toArray(),
         ]);
 
-        // 3. Throw an exception if Python fails, passing along the error details
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             $errorDetail = $response->json('detail') ?? $response->body();
             throw new \Exception("Python generation failed: " . $errorDetail);
         }
 
-        // 4. Stream the returned Word document back to the browser for download
-        $fileName = 'phone_directory.docx';
-
         return response()->streamDownload(function () use ($response) {
             echo $response->body();
-        }, $fileName, [
+        }, 'phone_directory.docx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ]);
     }

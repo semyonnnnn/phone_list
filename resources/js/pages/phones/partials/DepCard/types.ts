@@ -42,6 +42,7 @@ export interface DepCardProps {
     onGroupNameChange?: (depIndex: number, newGroupName: string) => void;
     handleTerritoryChange: (depIndex: number, territory: TerritoryKey) => void; // NEW
     errors: Partial<Record<string, string>>;
+    departmentNameWidth: number;
 }
 
 export interface GroupNameInputProps {
@@ -49,6 +50,7 @@ export interface GroupNameInputProps {
     onCommit: (val: string) => void;
     onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
     onBlur?: React.FocusEventHandler<HTMLInputElement>;
+    departmentNameWidth: number;
 }
 
 export interface DebouncedInputProps {

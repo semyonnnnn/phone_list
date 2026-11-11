@@ -306,6 +306,16 @@ export function usePhoneDirectory(
         setData('departments', updatedDeps);
     };
 
+    const departmentNameWidth = useMemo(() => {
+        const longestName = Math.max(
+            ...data.departments.map(dep =>
+                (dep.group.name ?? '').length
+            )
+        );
+
+        return Math.max(longestName + 3, 12);
+    }, [data.departments]);
+
     return {
         data,
         searchQuery,
@@ -334,5 +344,6 @@ export function usePhoneDirectory(
         handleTerritoryUpload,
         globalTerritoryValue,
         onChangeGlobalTerritoryValue,
+        departmentNameWidth,
     };
 }
