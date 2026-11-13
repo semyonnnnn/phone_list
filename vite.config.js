@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
-    const externalPort = Number(env.VITE_PORT);
+    const externalPort = Number(env.VITE_PORT) || 5173;
+    const hmrHost = env.VITE_HMR_HOST || 'localhost';
 
     return {
         plugins: [
@@ -21,11 +22,11 @@ export default defineConfig(({ mode }) => {
             port: 5173,
             strictPort: true,
             cors: true,
-            origin: `http://10.166.20.85:${externalPort}`,
+            origin: `http://${hmrHost}:${externalPort}`,
             hmr: {
-                host: '10.166.20.85',
-                port: 5173,             // Internal WebSocket server port
-                clientPort: externalPort, // External port exposed to the browser
+                host: hmrHost,
+                port: 5173,
+                clientPort: externalPort,
                 protocol: 'ws',
             },
             watch: {
