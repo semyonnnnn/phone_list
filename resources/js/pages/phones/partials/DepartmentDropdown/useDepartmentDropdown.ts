@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { DepartmentOption } from '../../types';
+import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
 
 export function useDepartmentDropdown(
     options: DepartmentOption[],
@@ -8,7 +9,8 @@ export function useDepartmentDropdown(
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [dynamicOptions, setDynamicOptions] = useState<DepartmentOption[]>(options);
-
+    const { setGlobalTerritoryValue } = usePhoneContext();
+    
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -77,6 +79,7 @@ export function useDepartmentDropdown(
         onSelect(opt);
         setIsOpen(false);
         setSearchQuery('');
+        setGlobalTerritoryValue('all');
     };
 
     return {
