@@ -20,7 +20,7 @@ export function usePhoneDirectory(
     // Starts from what the server applied, so a reload or a pagination link keeps the filter.
     // Explicit generic: without it TypeScript infers a wide type from the fallback.
 
-    const { globalTerritoryValue, setGlobalTerritoryValue } = usePhoneContext();
+    const { globalTerritoryValue } = usePhoneContext();
 
     const [showSuccess, setShowSuccess] = useState(false);
     const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -140,7 +140,14 @@ export function usePhoneDirectory(
         return () => clearTimeout(timer);
     }, [searchQuery, selectedOption, globalTerritoryValue]);
 
-    const hasChanges = useMemo(() => JSON.stringify(data.departments) !== JSON.stringify(originalDeps), [data.departments, originalDeps]);
+    const hasChanges = useMemo(() => {
+        console.log('--------------------------');
+        console.log('data.departments:', data.departments);
+        console.log('originalDeps:', originalDeps);
+        console.log('--------------------------');
+
+        return JSON.stringify(data.departments) !== JSON.stringify(originalDeps);
+    }, [data.departments, originalDeps]);
 
     const { bossChanged, isMiniBossChanged } = useMemo(() => {
         let boss = false;

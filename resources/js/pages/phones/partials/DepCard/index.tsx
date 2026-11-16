@@ -50,7 +50,7 @@ export default function DepCard({
         borderRadius: 0,
     } as const;
 
-    const rowCellBorder = (active: boolean) => (active ? 'border-b border-l border-r border-white' : '');
+    const rowCellBorder = (active: boolean) => (active ? 'border-b border-white' : '');
 
     const groupError = errors?.[`departments.${depIndex}.group.name`];
     const pencilSpace = isAuthenticated ? '27px + 0.5rem' : '0px';
@@ -64,8 +64,6 @@ export default function DepCard({
         'minmax(8ch, 1fr)',
         `calc(${columnWidths.ipWidth}ch + 2rem)`,
     ].join(' ');
-
-
 
     return (
         <div className="relative mb-12">
@@ -233,7 +231,6 @@ export default function DepCard({
 
                             const cellBgClass = `${baseCellBg} ${hoverCellBg} transition-colors`;
 
-
                             let rowBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
                             let leftAccentClass = 'border-l-4 border-l-transparent';
 
@@ -252,11 +249,12 @@ export default function DepCard({
                             return (
                                 <div
                                     key={row.id ?? originalIndex}
-                                    className="contents group"
-                                >
+                                    className="contents group">
                                     {activeColumn === 'isBoss' && (
                                         <div
-                                            className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${bossPickDisabled
+                                            className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${rowCellBorder(
+                                                anyBossActive
+                                            )} ${bossPickDisabled
                                                 ? 'opacity-40 cursor-not-allowed'
                                                 : 'cursor-pointer hover:bg-black/10'
                                                 } ${cellBgClass}`}
@@ -282,7 +280,9 @@ export default function DepCard({
 
                                     {activeColumn === 'isMiniBoss' && (
                                         <div
-                                            className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${miniBossPickDisabled
+                                            className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${rowCellBorder(
+                                                anyBossActive
+                                            )} ${miniBossPickDisabled
                                                 ? 'opacity-40 cursor-not-allowed'
                                                 : 'cursor-pointer hover:bg-black/10'
                                                 } ${cellBgClass}`}
@@ -309,7 +309,7 @@ export default function DepCard({
                                     {/* Person */}
                                     <div
                                         className={`border-r border-[#ccc] p-3 flex flex-col justify-center overflow-hidden min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${!hasPickerCol ? leftAccentClass : ''
-                                            } ${anyBossActive ? 'border-b border-white' : ''} ${cellBgClass}`}>
+                                            } ${rowCellBorder(anyBossActive)} ${cellBgClass}`}>
                                         <div className="flex items-center gap-2 min-w-0">
                                             {bossActive && (
                                                 <span className="bg-black text-white text-[0.7rem] font-bold px-1 py-0.5 tracking-wider font-mono select-none shrink-0">

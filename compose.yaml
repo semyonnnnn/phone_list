@@ -25,6 +25,7 @@ services:
         depends_on:
             - mariadb
             - python
+        restart: unless-stopped
 
     mariadb:
         image: 'mariadb:11'
@@ -43,6 +44,7 @@ services:
             test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
             retries: 3
             timeout: 5s
+        restart: unless-stopped
 
     mariadb-gate:
         image: nginx:alpine
@@ -54,6 +56,7 @@ services:
             - mariadb
         networks:
             - sail
+        restart: unless-stopped
 
     cloudbeaver:
         image: dbeaver/cloudbeaver:latest
@@ -63,6 +66,7 @@ services:
             - mariadb
         networks:
             - sail
+        restart: unless-stopped
 
     cloudbeaver-gate:
         image: nginx:alpine
@@ -76,6 +80,7 @@ services:
             - cloudbeaver
         networks:
             - sail
+        restart: unless-stopped
 
     python:
         build:

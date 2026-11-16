@@ -19,4 +19,12 @@ class Phone extends Model
         'isMiniBoss',
         'department_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'isBoss' => 'boolean',
+            'isMiniBoss' => 'boolean',
+        ];
+    }
 }
