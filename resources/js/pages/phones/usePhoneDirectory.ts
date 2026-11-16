@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
 import { PhoneRecord, PageProps, DepartmentOption, PhoneForm } from './types';
 import { DEFAULT_TERRITORY, TerritoryKey, GlobalTerritoryKey } from '@/types';
+import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
 
 export function usePhoneDirectory(
     initialDeps: PageProps['departments'],
@@ -18,9 +19,8 @@ export function usePhoneDirectory(
     // target), which must always be a real TerritoryKey.
     // Starts from what the server applied, so a reload or a pagination link keeps the filter.
     // Explicit generic: without it TypeScript infers a wide type from the fallback.
-    const [globalTerritoryValue, setGlobalTerritoryValue] = useState<GlobalTerritoryKey>(
-        filters?.territory ?? 'all'
-    );
+
+    const { globalTerritoryValue, setGlobalTerritoryValue } = usePhoneContext();
 
     const [showSuccess, setShowSuccess] = useState(false);
     const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -118,10 +118,6 @@ export function usePhoneDirectory(
     const handleTerritoryUpload = (territory: TerritoryKey) => {
         fileInputRef.current?.click();
         setData('territory', territory);
-    };
-
-    const onChangeGlobalTerritoryValue = (value: GlobalTerritoryKey) => {
-        setGlobalTerritoryValue(value);
     };
 
     useEffect(() => {
@@ -343,7 +339,6 @@ export function usePhoneDirectory(
         handleTerritoryChange,
         handleTerritoryUpload,
         globalTerritoryValue,
-        onChangeGlobalTerritoryValue,
         departmentNameWidth,
     };
 }

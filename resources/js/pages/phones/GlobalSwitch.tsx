@@ -1,6 +1,8 @@
-import { GLOBAL_TERRITORIES, GlobalTerritoryKey, GlobalSwitchProps } from "@/types";
+import { GLOBAL_TERRITORIES, GlobalTerritoryKey } from "@/types";
+import { usePhoneContext } from "@/pages/phones/context/PhonesContext";
 
-export function GlobalSwitch({ globalTerritoryValue, onChangeGlobalTerritoryValue }: GlobalSwitchProps) {
+export function GlobalSwitch() {
+    const { globalTerritoryValue, setGlobalTerritoryValue } = usePhoneContext();
     // Keys of the object, in declaration order: ekb -> krg -> all.
     // Cast is needed because Object.keys always returns string[].
     // It must be GlobalTerritoryKey[] (not TerritoryKey[]) so 'all' is part of the cycle.
@@ -17,9 +19,7 @@ export function GlobalSwitch({ globalTerritoryValue, onChangeGlobalTerritoryValu
     return (
         <button
             type="button"
-            onClick={() => {
-                onChangeGlobalTerritoryValue(nextKey);
-            }}
+            onClick={() => setGlobalTerritoryValue(nextKey)}
             aria-label={`Территория: ${label}. Переключить на ${nextLabel}`}
             title={`Переключить на ${nextLabel}`}
             className={[

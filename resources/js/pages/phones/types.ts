@@ -71,3 +71,34 @@ export interface PhoneForm {
     territory: TerritoryKey;
     [key: string]: any; // satisfies Inertia's FormDataType constraint
 }
+
+export const PAGE_STYLE: React.CSSProperties = {
+    fontFamily: '"Courier New", Courier, monospace',
+    backgroundImage: `
+        linear-gradient(#4d1a1a 1px, transparent 1px), linear-gradient(90deg, #4d1a1a 1px, transparent 1px),
+        linear-gradient(#260d0d 1px, transparent 1px), linear-gradient(90deg, #260d0d 1px, transparent 1px),
+        linear-gradient(#4d331a 1px, transparent 1px), linear-gradient(90deg, #4d331a 1px, transparent 1px),
+        linear-gradient(#4d4d1a 1px, transparent 1px), linear-gradient(90deg, #4d4d1a 1px, transparent 1px),
+        linear-gradient(#1a4d1a 1px, transparent 1px), linear-gradient(90deg, #1a4d1a 1px, transparent 1px),
+        linear-gradient(#0d260d 1px, transparent 1px), linear-gradient(90deg, #0d260d 1px, transparent 1px),
+        linear-gradient(#1a4d4d 1px, transparent 1px), linear-gradient(90deg, #1a4d4d 1px, transparent 1px),
+        linear-gradient(#1a264d 1px, transparent 1px), linear-gradient(90deg, #1a264d 1px, transparent 1px),
+        linear-gradient(#0d0d26 1px, transparent 1px), linear-gradient(90deg, #0d0d26 1px, transparent 1px),
+        linear-gradient(#331a4d 1px, transparent 1px), linear-gradient(90deg, #331a4d 1px, transparent 1px),
+        linear-gradient(#4d1a33 1px, transparent 1px), linear-gradient(90deg, #4d1a33 1px, transparent 1px)
+    `,
+    backgroundSize: '11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem',
+    backgroundPosition: `
+        0 0, 0 0,
+        1.1rem 1.1rem, 1.1rem 1.1rem,
+        2.2rem 2.2rem, 2.2rem 2.2rem,
+        3.3rem 3.3rem, 3.3rem 3.3rem,
+        4.4rem 4.4rem, 4.4rem 4.4rem,
+        5.5rem 5.5rem, 5.5rem 5.5rem,
+        6.6rem 6.6rem, 6.6rem 6.6rem,
+        7.7rem 7.7rem, 7.7rem 7.7rem,
+        8.8rem 8.8rem, 8.8rem 8.8rem,
+        9.9rem 9.9rem, 9.9rem 9.9rem,
+        1.1rem 0, 0 1.1rem
+    `,
+};

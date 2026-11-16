@@ -1,7 +1,6 @@
 import { Link } from "@inertiajs/react";
 import { PaginationLink } from "./types";
 import { GlobalSwitch } from "./GlobalSwitch";
-import { GlobalTerritoryKey } from "@/types";
 
 interface PaginationProps {
     pagination: {
@@ -10,8 +9,6 @@ interface PaginationProps {
         links: PaginationLink[];
         total: number;
     } | undefined;
-    globalTerritoryValue: GlobalTerritoryKey,
-    onChangeGlobalTerritoryValue: (globalTerritoryValue: GlobalTerritoryKey) => void
 }
 
 const translatePaginationLabel = (label: string) => {
@@ -24,15 +21,12 @@ const translatePaginationLabel = (label: string) => {
     return label;
 };
 
-export const Pagination = ({ pagination, globalTerritoryValue, onChangeGlobalTerritoryValue }: PaginationProps) => {
+export const Pagination = ({ pagination }: PaginationProps) => {
     if (!pagination || pagination.last_page <= 1) return null;
 
     return (
         <div className="flex justify-between pr-20 pl-10 py-4 bg-[#1a1a1a]/90 border border-[#555] shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
-            <GlobalSwitch
-                globalTerritoryValue={globalTerritoryValue}
-                onChangeGlobalTerritoryValue={onChangeGlobalTerritoryValue}
-            />
+            <GlobalSwitch />
             <div className="flex justify-center items-center gap-2">
                 {pagination.links.map((link, idx) => {
                     const translatedLabel = translatePaginationLabel(link.label);
