@@ -65,6 +65,8 @@ export default function DepCard({
         `calc(${columnWidths.ipWidth}ch + 2rem)`,
     ].join(' ');
 
+
+
     return (
         <div className="relative mb-12">
             <div className="absolute -top-3 -right-3 w-[35px] h-[35px] border-4 border-white border-b-0 border-l-0 z-20 pointer-events-none" />
@@ -221,6 +223,17 @@ export default function DepCard({
                             const miniBossErrMsg = miniBossServerError(originalIndex);
                             const rowHasServerError = hasServerError(originalIndex);
 
+                            let baseCellBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
+                            let hoverCellBg = 'group-hover:bg-black/10';
+
+                            if (bossActive || miniBossActive) {
+                                baseCellBg = 'bg-black/15';
+                                hoverCellBg = 'group-hover:bg-black/20';
+                            }
+
+                            const cellBgClass = `${baseCellBg} ${hoverCellBg} transition-colors`;
+
+
                             let rowBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
                             let leftAccentClass = 'border-l-4 border-l-transparent';
 
@@ -239,18 +252,17 @@ export default function DepCard({
                             return (
                                 <div
                                     key={row.id ?? originalIndex}
-                                    className="contents"
+                                    className="contents group"
                                 >
                                     {activeColumn === 'isBoss' && (
                                         <div
                                             className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${bossPickDisabled
                                                 ? 'opacity-40 cursor-not-allowed'
                                                 : 'cursor-pointer hover:bg-black/10'
-                                                }`}
+                                                } ${cellBgClass}`}
                                             onClick={() => handleBossRadioChange(originalIndex)}
                                             aria-disabled={bossPickDisabled}
-                                            title={bossPickDisabled ? 'Уже назначен заместителем' : undefined}
-                                        >
+                                            title={bossPickDisabled ? 'Уже назначен заместителем' : undefined}>
                                             <div
                                                 className="w-5 h-5 border-2 border-[#333] bg-white flex items-center justify-center"
                                                 style={{ borderRadius: 0 }}
@@ -273,11 +285,10 @@ export default function DepCard({
                                             className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${miniBossPickDisabled
                                                 ? 'opacity-40 cursor-not-allowed'
                                                 : 'cursor-pointer hover:bg-black/10'
-                                                }`}
+                                                } ${cellBgClass}`}
                                             onClick={() => handleMiniBossCheckboxToggle(originalIndex)}
                                             aria-disabled={miniBossPickDisabled}
-                                            title={miniBossPickDisabled ? 'Уже назначен начальником' : undefined}
-                                        >
+                                            title={miniBossPickDisabled ? 'Уже назначен начальником' : undefined}>
                                             <div
                                                 className="w-5 h-5 border-2 border-[#333] bg-white flex items-center justify-center"
                                                 style={{ borderRadius: 0 }}
@@ -298,8 +309,7 @@ export default function DepCard({
                                     {/* Person */}
                                     <div
                                         className={`border-r border-[#ccc] p-3 flex flex-col justify-center overflow-hidden min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${!hasPickerCol ? leftAccentClass : ''
-                                            } ${anyBossActive ? 'border-b border-white' : ''}`}
-                                    >
+                                            } ${anyBossActive ? 'border-b border-white' : ''} ${cellBgClass}`}>
                                         <div className="flex items-center gap-2 min-w-0">
                                             {bossActive && (
                                                 <span className="bg-black text-white text-[0.7rem] font-bold px-1 py-0.5 tracking-wider font-mono select-none shrink-0">
@@ -330,8 +340,7 @@ export default function DepCard({
                                     <div
                                         className={`border-r border-[#ccc] p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
                                             anyBossActive
-                                        )}`}
-                                    >
+                                        )} ${cellBgClass}`}>
                                         <DebouncedInput
                                             readOnly={!isAuthenticated}
                                             value={row?.phone}
@@ -345,8 +354,7 @@ export default function DepCard({
                                     <div
                                         className={`border-r border-[#ccc] p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
                                             anyBossActive
-                                        )}`}
-                                    >
+                                        )} ${cellBgClass}`}>
                                         <DebouncedInput
                                             readOnly={!isAuthenticated}
                                             value={row?.extension}
@@ -360,8 +368,7 @@ export default function DepCard({
                                     <div
                                         className={`border-r border-[#ccc] p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
                                             anyBossActive
-                                        )}`}
-                                    >
+                                        )} ${cellBgClass}`}>
                                         <DebouncedInput
                                             readOnly={!isAuthenticated}
                                             value={row?.cabinet}
@@ -375,8 +382,7 @@ export default function DepCard({
                                     <div
                                         className={`p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
                                             anyBossActive
-                                        )}`}
-                                    >
+                                        )} ${cellBgClass}`}>
                                         <DebouncedInput
                                             readOnly={!isAuthenticated}
                                             value={row?.ip}

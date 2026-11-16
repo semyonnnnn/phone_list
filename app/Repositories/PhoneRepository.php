@@ -76,11 +76,6 @@ class PhoneRepository
             ->join('departments', 'departments.id', '=', 'phones.department_id')
             ->select('phones.*', 'departments.name as group', 'departments.territory as territory');
 
-        // 'all' is not a stored value, so it must never reach a where().
-        // 'ekb' / 'krg' add a condition, 'all' (or null) adds nothing, which means
-        // rows from both territories come back. Territory::keys() is the whitelist:
-        // the FormRequest already enforced it, this is just the "is it a real
-        // territory?" check, so a future 'all'-like value can't leak into SQL.
         if ($territory !== null && in_array($territory, Territory::keys(), true)) {
             $query->where('departments.territory', $territory);
         }
@@ -101,6 +96,7 @@ class PhoneRepository
             $query->where(function ($q) use ($term) {
                 $q->where('phones.person', 'like', $term)
                     ->orWhere('phones.phone', 'like', $term)
+                    ->orWhere('phones.extension', 'like', $term)
                     ->orWhere('departments.name', 'like', $term);
             });
         } elseif ($department && $department !== 'Все отделы') {
@@ -109,6 +105,7 @@ class PhoneRepository
 
         return $query->paginate($perPage)->withQueryString();
     }
+
 
     // Used by PhoneService::update() to find a card's department through its first
     // phone, because the payload carries no department id.
