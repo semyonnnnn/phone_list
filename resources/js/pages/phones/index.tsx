@@ -32,8 +32,6 @@ function PhonesContent({
     flash,
     territories,
 }: PageProps) {
-    // `departments` goes in as the backend sent it: the same array object on every
-    // render, which is what keeps the sync effect in the hook from looping.
     const {
         data,
         searchQuery,
@@ -60,12 +58,13 @@ function PhonesContent({
         handleGroupNameChange,
         handleTerritoryChange,
         handleTerritoryUpload,
-        globalTerritoryValue,
         departmentNameWidth,
+        columnWidths
     } = usePhoneDirectory(departments, filters, flash, allGroups);
 
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
     const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');
+
 
     return (
         <div
@@ -217,6 +216,7 @@ function PhonesContent({
                                 expects, so no annotation is needed. */}
                             {data.departments.map((dep, depIndex) => (
                                 <DepCard
+                                    columnWidths={columnWidths}
                                     departmentNameWidth={departmentNameWidth}
                                     key={depIndex}
                                     bossChanged={bossChanged}

@@ -25,16 +25,8 @@ export interface DepCardProps {
     dep: Department;
     depIndex: number;
     isAuthenticated: boolean;
-    onFieldChange: (
-        depIndex: number,
-        rowIndex: number,
-        field: keyof PhoneRecord,
-        value: string | boolean
-    ) => void;
-    onBossChange: (
-        depIndex: number,
-        targetRowIndex: number
-    ) => void;
+    onFieldChange: (depIndex: number, rowIndex: number, field: keyof PhoneRecord, value: string | boolean) => void;
+    onBossChange: (depIndex: number, targetRowIndex: number) => void;
     onEditBoss?: (depIndex: number) => void;
     onEditIsMiniBoss?: (depIndex: number) => void;
     bossChanged: boolean;
@@ -43,6 +35,12 @@ export interface DepCardProps {
     handleTerritoryChange: (depIndex: number, territory: TerritoryKey) => void; // NEW
     errors: Partial<Record<string, string>>;
     departmentNameWidth: number;
+    columnWidths: {
+        personWidth: number;
+        phoneWidth: number;
+        cabinetWidth: number;
+        ipWidth: number;
+    };
 }
 
 export interface GroupNameInputProps {

@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { useForm, router, usePage } from '@inertiajs/react';
-import { PhoneRecord, PageProps, DepartmentOption, PhoneForm } from './types';
-import { DEFAULT_TERRITORY, TerritoryKey, GlobalTerritoryKey } from '@/types';
 import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
+import { DEFAULT_TERRITORY, TerritoryKey } from '@/types';
+import { router, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { DepartmentOption, PageProps, PhoneForm, PhoneRecord } from './types';
 
 export function usePhoneDirectory(
     initialDeps: PageProps['departments'],
     filters: PageProps['filters'],
     flash: PageProps['flash'],
-    allGroups?: PageProps['allGroups']
+    allGroups?: PageProps['allGroups'],
 ) {
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
     const [selectedOption, setSelectedOption] = useState(filters?.department ?? 'Все отделы');
@@ -58,10 +58,7 @@ export function usePhoneDirectory(
 
         const elapsed = Date.now() - popupStartedAtRef.current;
 
-        popupRemainingRef.current = Math.max(
-            0,
-            popupRemainingRef.current - elapsed
-        );
+        popupRemainingRef.current = Math.max(0, popupRemainingRef.current - elapsed);
     };
 
     const resumePopupTimer = () => {
@@ -94,10 +91,7 @@ export function usePhoneDirectory(
         setOriginalDeps(JSON.parse(JSON.stringify(initialDeps)));
     }, [initialDeps]);
 
-    const handleBossChange = (
-        depIndex: number,
-        targetRowIndex: number
-    ) => {
+    const handleBossChange = (depIndex: number, targetRowIndex: number) => {
         const updatedDeps = data.departments.map((dep, currentDepIndex) => {
             if (currentDepIndex !== depIndex) {
                 return dep;
@@ -126,22 +120,19 @@ export function usePhoneDirectory(
             const currentDep = filters?.department ?? 'Все отделы';
             const currentTerritory = filters?.territory ?? 'all';
 
-            if (searchQuery !== currentSearch ||
-                selectedOption !== currentDep ||
-                globalTerritoryValue !== currentTerritory
-            ) {
+            if (searchQuery !== currentSearch || selectedOption !== currentDep || globalTerritoryValue !== currentTerritory) {
                 router.get(
                     route('phones.index'),
                     {
                         search: searchQuery,
                         department: selectedOption === 'Все отделы' ? '' : selectedOption,
-                        territory: globalTerritoryValue
+                        territory: globalTerritoryValue,
                     },
                     {
                         preserveState: true,
                         preserveScroll: true,
                         replace: true,
-                    }
+                    },
                 );
             }
         }, 350);
@@ -149,10 +140,7 @@ export function usePhoneDirectory(
         return () => clearTimeout(timer);
     }, [searchQuery, selectedOption, globalTerritoryValue]);
 
-    const hasChanges = useMemo(
-        () => JSON.stringify(data.departments) !== JSON.stringify(originalDeps),
-        [data.departments, originalDeps]
-    );
+    const hasChanges = useMemo(() => JSON.stringify(data.departments) !== JSON.stringify(originalDeps), [data.departments, originalDeps]);
 
     const { bossChanged, isMiniBossChanged } = useMemo(() => {
         let boss = false;
@@ -303,13 +291,25 @@ export function usePhoneDirectory(
     };
 
     const departmentNameWidth = useMemo(() => {
-        const longestName = Math.max(
-            ...data.departments.map(dep =>
-                (dep.group.name ?? '').length
-            )
-        );
+        const longestName = Math.max(...data.departments.map((dep) => (dep.group.name ?? '').length));
 
         return Math.max(longestName + 3, 12);
+    }, [data.departments]);
+
+    const columnWidths = useMemo(() => {
+        const allPhones = data.departments.flatMap((dep) => dep.phones ?? []);
+
+        const longestPerson = Math.max(0, ...allPhones.map((p) => (p.person ?? '').length));
+        const longestPhone = Math.max(0, ...allPhones.map((p) => (p.phone ?? '').length));
+        const longestCabinet = Math.max(0, ...allPhones.map((p) => String(p.cabinet ?? '').length));
+        const longestIp = Math.max(0, ...allPhones.map((p) => (p.ip ?? '').length));
+
+        return {
+            personWidth: Math.max(longestPerson + 3, 12),
+            phoneWidth: Math.max(longestPhone + 3, 10),
+            cabinetWidth: Math.max(longestCabinet + 3, 8),
+            ipWidth: Math.max(longestIp + 3, 10),
+        };
     }, [data.departments]);
 
     return {
@@ -340,5 +340,6 @@ export function usePhoneDirectory(
         handleTerritoryUpload,
         globalTerritoryValue,
         departmentNameWidth,
+        columnWidths,
     };
 }

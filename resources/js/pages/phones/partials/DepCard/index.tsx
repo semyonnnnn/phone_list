@@ -20,6 +20,7 @@ export default function DepCard({
     territories,
     handleTerritoryChange,
     departmentNameWidth,
+    columnWidths,
 }: DepCardProps) {
     const {
         activeColumn,
@@ -51,10 +52,18 @@ export default function DepCard({
 
     const rowCellBorder = (active: boolean) => (active ? 'border-b border-l border-r border-white' : '');
 
-    // CHANGED: the server error for the name now lives under the nested key
     const groupError = errors?.[`departments.${depIndex}.group.name`];
     const pencilSpace = isAuthenticated ? '27px + 0.5rem' : '0px';
 
+    const hasPickerCol = activeColumn === 'isBoss' || activeColumn === 'isMiniBoss';
+    const gridTemplateColumns = [
+        ...(hasPickerCol ? ['13ch'] : []),
+        `minmax(0, calc(${columnWidths.personWidth}ch + 4.5rem))`,
+        `calc(${columnWidths.phoneWidth}ch + 2rem)`,
+        '12ch',
+        'minmax(8ch, 1fr)',
+        `calc(${columnWidths.ipWidth}ch + 2rem)`,
+    ].join(' ');
 
     return (
         <div className="relative mb-12">
@@ -69,20 +78,17 @@ export default function DepCard({
                         backgroundSize: '0.5rem 0.5rem',
                     }}
                 >
-                    <div className='flex'>
+                    <div className="flex">
                         <div
                             className="bg-[#f5f5f5] inline-block shrink-0 box-border min-w-[12ch] px-4 py-2 text-[1.35rem] font-bold border border-[#ccc]"
                             style={{
                                 width: `calc(${departmentNameWidth}ch + ${pencilSpace})`,
-                                // was 36ch: this is the real upper limit of the box. 60ch fits ~60 chars of name.
                                 maxWidth: `calc(60ch + ${pencilSpace})`,
                             }}
                         >
-                            {/* CHANGED: dep.group is an object now, the text is dep.group.name */}
                             {!isAuthenticated ? dep.group.name : (
                                 <div>
                                     <div className="flex justify-between items-center gap-2 border-b border-black">
-                                        {/* no onBlur prop: GroupNameInput already sends its pending text on blur */}
                                         <GroupNameInput
                                             value={groupName}
                                             onCommit={(val) => onGroupNameChange?.(depIndex, val)}
@@ -90,7 +96,6 @@ export default function DepCard({
                                         />
 
                                         <IconPencil size={27} stroke={2} aria-hidden="true" className="shrink-0" />
-
                                     </div>
 
                                     {groupError && (
@@ -99,12 +104,10 @@ export default function DepCard({
                                             <span>{groupError}</span>
                                         </div>
                                     )}
-
                                 </div>
                             )}
-
                         </div>
-                        {/* CHANGED: options and value now come from data, nothing is hardcoded */}
+
                         <TerritorySwitch
                             value={dep.group.territory}
                             isAuthenticated={isAuthenticated}
@@ -162,7 +165,6 @@ export default function DepCard({
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i}>
                                 <span
-                                    key={i}
                                     className="text-[5.5rem] font-black text-[#d6d6d6] uppercase whitespace-nowrap tracking-wider font-mono"
                                 >
                                     {groupName || 'ОТДЕЛ'}
@@ -171,174 +173,222 @@ export default function DepCard({
                         ))}
                     </div>
 
-                    <table className="w-full border-collapse relative z-10 table-auto bg-transparent">
-                        <thead>
-                            <tr className="border-b border-[#ccc] bg-[#e5e5e5]/90 text-[1.1rem] text-[#333] font-bold">
-                                {activeColumn === 'isBoss' && (
-                                    <th className="border-r border-[#ccc] p-3 text-left whitespace-nowrap">начальник</th>
-                                )}
-                                {activeColumn === 'isMiniBoss' && (
-                                    <th className="border-r border-[#ccc] p-3 text-left whitespace-nowrap">заместитель</th>
-                                )}
-                                <th
-                                    className="border-r border-[#ccc] p-3 text-left whitespace-nowrap"
-                                    style={{ width: `${maxNameLen}ch` }}
+                    {/* Unified CSS Grid for both Header and Data Rows */}
+                    <div
+                        className="grid w-full font-mono text-[1.15rem] relative z-10 bg-transparent"
+                        style={{ gridTemplateColumns }}
+                    >
+                        {/* Header Cells (via display: contents so they share the exact same grid tracks as body rows) */}
+                        <div className="contents text-[1.1rem] text-[#333] font-bold">
+                            {activeColumn === 'isBoss' && (
+                                <div className="border-b border-r border-[#ccc] bg-[#e5e5e5]/90 border-l-4 border-l-transparent p-1 whitespace-nowrap flex items-center justify-center">
+                                    начальник
+                                </div>
+                            )}
+                            {activeColumn === 'isMiniBoss' && (
+                                <div className="border-b border-r border-[#ccc] bg-[#e5e5e5]/90 border-l-4 border-l-transparent p-1 whitespace-nowrap flex items-center justify-center">
+                                    заместитель
+                                </div>
+                            )}
+                            <div
+                                className={`border-b border-r border-[#ccc] bg-[#e5e5e5]/90 p-3 flex items-center whitespace-nowrap ${!hasPickerCol ? 'border-l-4 border-l-transparent' : ''
+                                    }`}
+                            >
+                                <span className="px-[0.3rem]">ФИО</span>
+                            </div>
+                            <div className="border-b border-r border-[#ccc] bg-[#e5e5e5]/90 p-3 flex items-center whitespace-nowrap">
+                                <span className="px-[0.3rem]">Телефон</span>
+                            </div>
+                            <div className="border-b border-r border-[#ccc] bg-[#e5e5e5]/90 p-3 flex items-center justify-center whitespace-nowrap">
+                                Добавочный
+                            </div>
+                            <div className="border-b border-r border-[#ccc] bg-[#e5e5e5]/90 p-3 flex items-center whitespace-nowrap">
+                                <span className="px-[0.3rem]">Кабинет</span>
+                            </div>
+                            <div className="border-b border-[#ccc] bg-[#e5e5e5]/90 p-3 flex items-center whitespace-nowrap">
+                                <span className="px-[0.3rem]">IP</span>
+                            </div>
+                        </div>
+
+                        {/* Body Rows */}
+                        {sortedPhonesWithIndices.map(({ row, originalIndex }, sortedIdx) => {
+                            const bossActive = isBossChecked(originalIndex);
+                            const miniBossActive = isMiniBossChecked(originalIndex);
+                            const anyBossActive = bossActive || miniBossActive;
+                            const bossPickDisabled = isBossPickDisabled(originalIndex);
+                            const miniBossPickDisabled = isMiniBossPickDisabled(originalIndex);
+                            const bossErrMsg = bossServerError(originalIndex);
+                            const miniBossErrMsg = miniBossServerError(originalIndex);
+                            const rowHasServerError = hasServerError(originalIndex);
+
+                            let rowBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
+                            let leftAccentClass = 'border-l-4 border-l-transparent';
+
+                            if (bossActive || miniBossActive) {
+                                rowBg = 'bg-black/15 hover:bg-black/20';
+                                leftAccentClass = miniBossActive
+                                    ? 'border-l-4 border-l-[#777]'
+                                    : 'border-l-4 border-l-black';
+                            } else {
+                                rowBg += ' hover:bg-black/10';
+                            }
+
+                            const rowDividerClass = sortedIdx < sortedPhonesWithIndices.length - 1 ? 'border-b border-[#ccc]/50' : '';
+                            const errorOutlineClass = rowHasServerError ? 'border-t-2 border-b-2 border-red-600' : '';
+
+                            return (
+                                <div
+                                    key={row.id ?? originalIndex}
+                                    className="contents"
                                 >
-                                    ФИО
-                                </th>
-                                <th className="border-r border-[#ccc] p-3 text-left">Телефон</th>
-                                <th className="border-r border-[#ccc] p-3 text-left">Добавочный</th>
-                                <th className="border-r border-[#ccc] p-3 text-left">Кабинет</th>
-                                <th className="p-3 text-left">IP</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#ccc]/50">
-                            {sortedPhonesWithIndices.map(({ row, originalIndex }, sortedIdx) => {
-                                const bossActive = isBossChecked(originalIndex);
-                                const miniBossActive = isMiniBossChecked(originalIndex);
-                                const anyBossActive = bossActive || miniBossActive;
-                                const bossPickDisabled = isBossPickDisabled(originalIndex);
-                                const miniBossPickDisabled = isMiniBossPickDisabled(originalIndex);
-                                const bossErrMsg = bossServerError(originalIndex);
-                                const miniBossErrMsg = miniBossServerError(originalIndex);
-                                const rowHasServerError = hasServerError(originalIndex);
-
-                                let rowBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
-                                let leftAccentClass = 'border-l-4 border-l-transparent';
-
-                                if (bossActive || miniBossActive) {
-                                    rowBg = 'bg-black/15 hover:bg-black/20';
-                                    leftAccentClass = miniBossActive ?
-                                        'border-l-4 border-l-[#777]'
-                                        : 'border-l-4 border-l-black';
-                                } else {
-                                    rowBg += ' hover:bg-black/10';
-                                }
-
-                                if (rowHasServerError) {
-                                    rowBg += ' outline outline-red-600 -outline-offset-2';
-                                }
-
-                                return (
-                                    <tr key={row.id ?? originalIndex} className={`${rowBg} transition-colors`}>
-                                        {activeColumn === 'isBoss' && (
-                                            <td
-                                                className={`border-r border-[#ccc] p-3 text-center select-none ${leftAccentClass} ${bossPickDisabled
-                                                    ? 'opacity-40 cursor-not-allowed'
-                                                    : 'cursor-pointer hover:bg-black/10'
-                                                    }`}
-                                                onClick={() => handleBossRadioChange(originalIndex)}
-                                                aria-disabled={bossPickDisabled}
-                                                title={bossPickDisabled ? 'Уже назначен заместителем' : undefined}
-                                            >
-                                                <div className="w-5 h-5 border-2 border-[#333] bg-white mx-auto flex items-center justify-center" style={{ borderRadius: 0 }}>
-                                                    {bossActive && (
-                                                        <IconCheck size={14} stroke={3} className="text-[#111]" aria-hidden="true" />
-                                                    )}
-                                                </div>
-                                                {bossErrMsg && (
-                                                    <div className="mt-1 flex items-center justify-center gap-1 text-red-600 text-[0.65rem] font-bold leading-tight">
-                                                        <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
-                                                        <span>{bossErrMsg}</span>
-                                                    </div>
-                                                )}
-                                            </td>
-                                        )}
-
-                                        {activeColumn === 'isMiniBoss' && (
-                                            <td
-                                                className={`border-r border-[#ccc] p-3 text-center select-none ${!activeColumn ? leftAccentClass : ''
-                                                    } ${miniBossPickDisabled
-                                                        ? 'opacity-40 cursor-not-allowed'
-                                                        : 'cursor-pointer hover:bg-black/10'
-                                                    }`}
-                                                onClick={() => handleMiniBossCheckboxToggle(originalIndex)}
-                                                aria-disabled={miniBossPickDisabled}
-                                                title={miniBossPickDisabled ? 'Уже назначен начальником' : undefined}
-                                            >
-                                                <div className="w-5 h-5 border-2 border-[#333] bg-white mx-auto flex items-center justify-center" style={{ borderRadius: 0 }}>
-                                                    {miniBossActive && (
-                                                        <IconCheck size={14} stroke={3} className="text-[#111]" aria-hidden="true" />
-                                                    )}
-                                                </div>
-                                                {miniBossErrMsg && (
-                                                    <div className="mt-1 flex items-center justify-center gap-1 text-red-600 text-[0.65rem] font-bold leading-tight">
-                                                        <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
-                                                        <span>{miniBossErrMsg}</span>
-                                                    </div>
-                                                )}
-                                            </td>
-                                        )}
-
-                                        <td
-                                            className={`border-r border-[#ccc] p-3 whitespace-nowrap overflow-hidden ${!activeColumn ? leftAccentClass : ''
-                                                } ${anyBossActive ? 'border-b border-white' : ''}`}
-                                            style={{ width: `${maxNameLen}ch` }}
+                                    {activeColumn === 'isBoss' && (
+                                        <div
+                                            className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${bossPickDisabled
+                                                ? 'opacity-40 cursor-not-allowed'
+                                                : 'cursor-pointer hover:bg-black/10'
+                                                }`}
+                                            onClick={() => handleBossRadioChange(originalIndex)}
+                                            aria-disabled={bossPickDisabled}
+                                            title={bossPickDisabled ? 'Уже назначен заместителем' : undefined}
                                         >
-                                            <div className="flex items-center gap-2">
+                                            <div
+                                                className="w-5 h-5 border-2 border-[#333] bg-white flex items-center justify-center"
+                                                style={{ borderRadius: 0 }}
+                                            >
                                                 {bossActive && (
-                                                    <span className="bg-black text-white text-[0.7rem] font-bold px-1 py-0.5 tracking-wider font-mono select-none">
-                                                        НАЧ
-                                                    </span>
+                                                    <IconCheck size={14} stroke={3} className="text-[#111]" aria-hidden="true" />
                                                 )}
-                                                {miniBossActive && (
-                                                    <span className="bg-[#555] text-white text-[0.7rem] font-bold px-1 py-0.5 tracking-wider font-mono select-none">
-                                                        ЗАМ
-                                                    </span>
-                                                )}
-                                                <DebouncedInput
-                                                    readOnly={!isAuthenticated}
-                                                    value={row?.person}
-                                                    onChange={(val) => onFieldChange(depIndex, originalIndex, 'person', val)}
-                                                    className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
-                                                />
                                             </div>
-                                            {rowHasServerError && (
-                                                <div className="mt-1 text-red-600 text-[0.7rem] font-bold">
-                                                    {bossErrMsg || miniBossErrMsg}
+                                            {bossErrMsg && (
+                                                <div className="mt-1 flex items-center justify-center gap-1 text-red-600 text-[0.65rem] font-bold leading-tight">
+                                                    <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
+                                                    <span>{bossErrMsg}</span>
                                                 </div>
                                             )}
-                                        </td>
-                                        <td className={`border-r border-[#ccc] p-3 ${rowCellBorder(anyBossActive)}`}>
-                                            <DebouncedInput
-                                                readOnly={!isAuthenticated}
-                                                value={row?.phone}
-                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'phone', val)}
-                                                className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
-                                            />
-                                        </td>
-                                        <td className={`border-r border-[#ccc] p-3 ${rowCellBorder(anyBossActive)}`}>
-                                            <DebouncedInput
-                                                readOnly={!isAuthenticated}
-                                                value={row?.extension}
-                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'extension', val)}
-                                                className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
-                                            />
-                                        </td>
-                                        {/* Cabinet Input */}
-                                        <td className={`border-r border-[#ccc] p-3 ${rowCellBorder(anyBossActive)}`}>
-                                            <DebouncedInput
-                                                readOnly={!isAuthenticated}
-                                                value={row?.cabinet}
-                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'cabinet', val)}
-                                                className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
-                                            />
-                                        </td>
+                                        </div>
+                                    )}
 
-                                        {/* IP Input */}
-                                        <td className={`p-3 ${rowCellBorder(anyBossActive)}`}>
+                                    {activeColumn === 'isMiniBoss' && (
+                                        <div
+                                            className={`border-r border-[#ccc] p-0 flex flex-col items-center justify-center select-none transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${leftAccentClass} ${miniBossPickDisabled
+                                                ? 'opacity-40 cursor-not-allowed'
+                                                : 'cursor-pointer hover:bg-black/10'
+                                                }`}
+                                            onClick={() => handleMiniBossCheckboxToggle(originalIndex)}
+                                            aria-disabled={miniBossPickDisabled}
+                                            title={miniBossPickDisabled ? 'Уже назначен начальником' : undefined}
+                                        >
+                                            <div
+                                                className="w-5 h-5 border-2 border-[#333] bg-white flex items-center justify-center"
+                                                style={{ borderRadius: 0 }}
+                                            >
+                                                {miniBossActive && (
+                                                    <IconCheck size={14} stroke={3} className="text-[#111]" aria-hidden="true" />
+                                                )}
+                                            </div>
+                                            {miniBossErrMsg && (
+                                                <div className="mt-1 flex items-center justify-center gap-1 text-red-600 text-[0.65rem] font-bold leading-tight">
+                                                    <IconExclamationCircle size={11} stroke={2.5} aria-hidden="true" />
+                                                    <span>{miniBossErrMsg}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Person */}
+                                    <div
+                                        className={`border-r border-[#ccc] p-3 flex flex-col justify-center overflow-hidden min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${!hasPickerCol ? leftAccentClass : ''
+                                            } ${anyBossActive ? 'border-b border-white' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            {bossActive && (
+                                                <span className="bg-black text-white text-[0.7rem] font-bold px-1 py-0.5 tracking-wider font-mono select-none shrink-0">
+                                                    НАЧ
+                                                </span>
+                                            )}
+                                            {miniBossActive && (
+                                                <span className="bg-[#555] text-white text-[0.7rem] font-bold px-1 py-0.5 tracking-wider font-mono select-none shrink-0">
+                                                    ЗАМ
+                                                </span>
+                                            )}
                                             <DebouncedInput
                                                 readOnly={!isAuthenticated}
-                                                value={row?.ip}
-                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'ip', val)}
-                                                className={`text-[1.15rem] w-full border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'} ${bossActive ? 'font-bold' : ''}`}
+                                                value={row?.person}
+                                                onChange={(val) => onFieldChange(depIndex, originalIndex, 'person', val)}
+                                                className={`text-[1.15rem] w-full min-w-0 border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'
+                                                    } ${bossActive ? 'font-bold' : ''}`}
                                             />
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                        </div>
+                                        {rowHasServerError && (
+                                            <div className="mt-1 text-red-600 text-[0.7rem] font-bold">
+                                                {bossErrMsg || miniBossErrMsg}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div
+                                        className={`border-r border-[#ccc] p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
+                                            anyBossActive
+                                        )}`}
+                                    >
+                                        <DebouncedInput
+                                            readOnly={!isAuthenticated}
+                                            value={row?.phone}
+                                            onChange={(val) => onFieldChange(depIndex, originalIndex, 'phone', val)}
+                                            className={`text-[1.15rem] w-full min-w-0 border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'
+                                                } ${bossActive ? 'font-bold' : ''}`}
+                                        />
+                                    </div>
+
+                                    {/* Extension (Hardcoded width) */}
+                                    <div
+                                        className={`border-r border-[#ccc] p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
+                                            anyBossActive
+                                        )}`}
+                                    >
+                                        <DebouncedInput
+                                            readOnly={!isAuthenticated}
+                                            value={row?.extension}
+                                            onChange={(val) => onFieldChange(depIndex, originalIndex, 'extension', val)}
+                                            className={`text-[1.15rem] text-center w-full min-w-0 border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'
+                                                } ${bossActive ? 'font-bold' : ''}`}
+                                        />
+                                    </div>
+
+                                    {/* Cabinet (Takes remaining space via 1fr) */}
+                                    <div
+                                        className={`border-r border-[#ccc] p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
+                                            anyBossActive
+                                        )}`}
+                                    >
+                                        <DebouncedInput
+                                            readOnly={!isAuthenticated}
+                                            value={row?.cabinet}
+                                            onChange={(val) => onFieldChange(depIndex, originalIndex, 'cabinet', val)}
+                                            className={`text-[1.15rem] w-full min-w-0 border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'
+                                                } ${bossActive ? 'font-bold' : ''}`}
+                                        />
+                                    </div>
+
+                                    {/* IP */}
+                                    <div
+                                        className={`p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
+                                            anyBossActive
+                                        )}`}
+                                    >
+                                        <DebouncedInput
+                                            readOnly={!isAuthenticated}
+                                            value={row?.ip}
+                                            onChange={(val) => onFieldChange(depIndex, originalIndex, 'ip', val)}
+                                            className={`text-[1.15rem] w-full min-w-0 border-0 bg-transparent p-[0.3rem] outline-none text-black box-border font-mono ${isAuthenticated ? 'border-b border-[#999] focus:border-[#000]' : 'cursor-default'
+                                                } ${bossActive ? 'font-bold' : ''}`}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </div>
