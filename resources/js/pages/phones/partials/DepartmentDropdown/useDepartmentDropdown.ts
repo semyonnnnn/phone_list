@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { Option } from './types';
 import { DepartmentOption } from '../../types';
 
 export function useDepartmentDropdown(
