@@ -1,15 +1,12 @@
-import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { UploadIcon } from "lucide-react";
 //////////////////////////////////////////////////
-import DepCard from './partials/DepCard';
-import DepartmentDropdown from './partials/DepartmentDropdown';
-import { PopUp } from './partials/PopUp';
-import { usePhoneDirectory } from './usePhoneDirectory';
-// Department and DepartmentValue imports removed: `dep` is now inferred
-// from data.departments, so neither is needed here.
+import DepCard from '@/pages/phones/partials/DepCard';
+import { PopUp } from '@/pages/phones/partials/PopUp';
+import DepartmentDropdown from '@/pages/phones/partials/DepartmentDropdown';
+import { usePhoneDirectory } from '@/pages/phones/usePhoneDirectory';
 import { DepartmentOption, PageProps, PAGE_STYLE } from '@/pages/phones/types';
-import { Pagination } from './Pagination';
+import { Pagination } from '@/pages/phones/Pagination';
 import { PhoneProvider } from '@/pages/phones/context/PhonesContext';
 
 export default function Index(props: PageProps) {
@@ -59,11 +56,10 @@ function PhonesContent({
         handleTerritoryChange,
         handleTerritoryUpload,
         departmentNameWidth,
-        columnWidths
-    } = usePhoneDirectory(departments, filters, flash, allGroups);
-
-    const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
-    const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');
+        columnWidths,
+        isDatabaseEmpty,
+        isSearchActive,
+    } = usePhoneDirectory(departments, filters, flash, departments, allGroups, totalDatabaseCount, pagination);
 
 
     return (
@@ -218,11 +214,12 @@ function PhonesContent({
                                 <DepCard
                                     columnWidths={columnWidths}
                                     departmentNameWidth={departmentNameWidth}
+                                    // both are needed, because react strips key away
                                     key={depIndex}
+                                    depIndex={depIndex}
                                     bossChanged={bossChanged}
                                     isMiniBossChanged={isMiniBossChanged}
                                     dep={dep}
-                                    depIndex={depIndex}
                                     isAuthenticated={auth.is_authenticated}
                                     onFieldChange={handleFieldChangeByIndices}
                                     onBossChange={handleBossChange}

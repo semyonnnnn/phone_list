@@ -1,14 +1,23 @@
-import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
-import { DEFAULT_TERRITORY, TerritoryKey } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/react';
+////////////////////////////////////////////////////////////
+import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
+import { Department, DepartmentOption, PageProps, PaginationLink, PhoneForm, PhoneRecord } from '@/pages/phones/types';
+import { DEFAULT_TERRITORY, TerritoryKey } from '@/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DepartmentOption, PageProps, PhoneForm, PhoneRecord } from './types';
 
 export function usePhoneDirectory(
     initialDeps: PageProps['departments'],
     filters: PageProps['filters'],
     flash: PageProps['flash'],
+    departments: Department[],
     allGroups?: PageProps['allGroups'],
+    totalDatabaseCount?: number,
+    pagination?: {
+        current_page: number;
+        last_page: number;
+        links: PaginationLink[];
+        total: number;
+    },
 ) {
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
     const [selectedOption, setSelectedOption] = useState(filters?.department ?? 'Все отделы');
@@ -20,7 +29,7 @@ export function usePhoneDirectory(
     // Starts from what the server applied, so a reload or a pagination link keeps the filter.
     // Explicit generic: without it TypeScript infers a wide type from the fallback.
 
-    const { globalTerritoryValue } = usePhoneContext();
+    const { globalTerritoryValue, closePicker } = usePhoneContext();
 
     const [showSuccess, setShowSuccess] = useState(false);
     const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -140,6 +149,10 @@ export function usePhoneDirectory(
         return () => clearTimeout(timer);
     }, [searchQuery, selectedOption, globalTerritoryValue]);
 
+    useEffect(() => {
+        closePicker();
+    }, [pagination?.current_page, departments]);
+
     const hasChanges = useMemo(() => {
         console.log('--------------------------');
         console.log('data.departments:', data.departments);
@@ -233,6 +246,7 @@ export function usePhoneDirectory(
 
     const handleCancel = () => {
         setData('departments', JSON.parse(JSON.stringify(originalDeps)));
+        closePicker();
         clearErrors();
     };
 
@@ -319,6 +333,9 @@ export function usePhoneDirectory(
         };
     }, [data.departments]);
 
+    const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
+    const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');
+
     return {
         data,
         searchQuery,
@@ -348,5 +365,7 @@ export function usePhoneDirectory(
         globalTerritoryValue,
         departmentNameWidth,
         columnWidths,
+        isDatabaseEmpty,
+        isSearchActive,
     };
 }

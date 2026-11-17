@@ -1,6 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Department, DepCardProps } from './types';
-import { isBoss, isMiniBoss, sortWithIndices } from '../../phoneRoles';
+import { useEffect, useMemo, useState } from 'react';
+//////////////////////////////////////////////////////////
+import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
+import { Department, DepCardProps } from '@/pages/phones/partials/DepCard/types';
+import { isBoss, isMiniBoss, sortWithIndices } from '@/pages/phones/phoneRoles';
 
 export function useDepCard(
     dep: Department,
@@ -11,20 +13,16 @@ export function useDepCard(
     onBossChange: DepCardProps['onBossChange'],
     onGroupNameChange?: DepCardProps['onGroupNameChange'],
     onEditBoss?: (depIndex: number) => void,
-    onEditIsMiniBoss?: (depIndex: number) => void
+    onEditIsMiniBoss?: (depIndex: number) => void,
 ) {
     const phones = dep.phones || [];
-    const [activeColumn, setActiveColumn] = useState<'isBoss' | 'isMiniBoss' | null>(null);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // dep.group is { name, territory }; only the name is text that gets edited,
-    // so only the name goes into this string state.
     const [groupName, setGroupName] = useState(dep.group.name);
 
-    // Pull the name in when the server (or Cancel) sends a new one. It depends on
-    // dep.group.name, not dep.group: a territory click replaces the group object but
-    // leaves the name unchanged, so this effect doesn't fire and nothing resets.
+    const { activePicker, togglePicker } = usePhoneContext();
+
+    const activeColumn = activePicker?.depKey === depIndex ? activePicker.column : null;
+
     useEffect(() => {
         setGroupName(dep.group.name);
     }, [dep.group.name]);
@@ -53,11 +51,9 @@ export function useDepCard(
         return row ? isMiniBoss(row) : false;
     };
 
-    const isBossPickDisabled = (rowIndex: number) =>
-        !isBossChecked(rowIndex) && isMiniBossChecked(rowIndex);
+    const isBossPickDisabled = (rowIndex: number) => !isBossChecked(rowIndex) && isMiniBossChecked(rowIndex);
 
-    const isMiniBossPickDisabled = (rowIndex: number) =>
-        !isMiniBossChecked(rowIndex) && isBossChecked(rowIndex);
+    const isMiniBossPickDisabled = (rowIndex: number) => !isMiniBossChecked(rowIndex) && isBossChecked(rowIndex);
 
     // Keys match what PhoneUpdateRequest::withValidator() adds:
     // departments.{dep}.phones.{row}.isBoss / .isMiniBoss
@@ -71,23 +67,13 @@ export function useDepCard(
         return errors?.[`departments.${depIndex}.phones.${rowIndex}.isMiniBoss`];
     };
 
-    const hasServerError = (rowIndex: number) =>
-        Boolean(bossServerError(rowIndex) || miniBossServerError(rowIndex));
+    const hasServerError = (rowIndex: number) => Boolean(bossServerError(rowIndex) || miniBossServerError(rowIndex));
 
     // Same dependency as before ([phones]); the sort itself now lives in phoneRoles.ts
     const sortedPhonesWithIndices = useMemo(() => sortWithIndices(phones), [phones]);
 
-    const handleBossButtonClick = () => {
-        if (!isAuthenticated) return;
-        setActiveColumn((prev) => (prev === 'isBoss' ? null : 'isBoss'));
-        onEditBoss?.(depIndex);
-    };
-
-    const handleIsMiniBossButtonClick = () => {
-        if (!isAuthenticated) return;
-        setActiveColumn((prev) => (prev === 'isMiniBoss' ? null : 'isMiniBoss'));
-        onEditIsMiniBoss?.(depIndex);
-    };
+    const handleBossButtonClick = () => togglePicker(depIndex, 'isBoss');
+    const handleIsMiniBossButtonClick = () => togglePicker(depIndex, 'isMiniBoss');
 
     const handleBossRadioChange = (targetOriginalIndex: number) => {
         if (!isAuthenticated) return;

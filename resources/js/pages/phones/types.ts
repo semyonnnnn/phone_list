@@ -1,6 +1,6 @@
+import { GlobalTerritoryKey, TerritoryKey } from '@/types';
 import { DepartmentGroup } from './partials/DepCard/types';
 import { DepartmentValue } from './partials/DepartmentDropdown/types';
-import { GlobalTerritoryKey, TerritoryKey } from "@/types";
 
 export interface PhoneRecord {
     id?: number;
@@ -87,7 +87,8 @@ export const PAGE_STYLE: React.CSSProperties = {
         linear-gradient(#331a4d 1px, transparent 1px), linear-gradient(90deg, #331a4d 1px, transparent 1px),
         linear-gradient(#4d1a33 1px, transparent 1px), linear-gradient(90deg, #4d1a33 1px, transparent 1px)
     `,
-    backgroundSize: '11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem',
+    backgroundSize:
+        '11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem, 11rem 11rem',
     backgroundPosition: `
         0 0, 0 0,
         1.1rem 1.1rem, 1.1rem 1.1rem,
@@ -102,3 +103,6 @@ export const PAGE_STYLE: React.CSSProperties = {
         1.1rem 0, 0 1.1rem
     `,
 };
+
+export type PickerColumn = 'isBoss' | 'isMiniBoss';
+export type ActivePicker = { depKey: string | number; column: PickerColumn } | null;
