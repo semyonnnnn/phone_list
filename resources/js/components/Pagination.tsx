@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
-import { PaginationLink } from "./types";
-import { GlobalSwitch } from "./GlobalSwitch";
+import { PaginationLink } from "@/pages/phones/types";
+import { GlobalSwitch } from "@/pages/phones/partials/GlobalSwitch";
 
 interface PaginationProps {
     pagination: {

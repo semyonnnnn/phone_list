@@ -1,7 +1,7 @@
-import { DepartmentOption } from "../../types";
+import { DepartmentOption } from '../../types';
 
 export interface DepartmentValue {
-    id: number,
+    id: number;
     name: string;
     territory: string;
 }
@@ -12,8 +12,10 @@ export interface Option {
 }
 
 export interface DepartmentDropdownProps {
+    isAuthenticated: boolean;
     options: DepartmentOption[];
     selectedOption: string;
     onSelect: (option: DepartmentOption) => void;
     onSearch?: (query: string) => Promise<Option[]> | void;
+    onAddDepartmentClick: () => void;
 }

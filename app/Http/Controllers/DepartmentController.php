@@ -8,4 +8,8 @@ class DepartmentController extends Controller
     {
         dd('hi');
     }
+    public function store()
+    {
+        dd('hi from store in dep');
+    }
 }

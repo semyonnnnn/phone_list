@@ -6,8 +6,9 @@ import { PopUp } from '@/pages/phones/partials/PopUp';
 import DepartmentDropdown from '@/pages/phones/partials/DepartmentDropdown';
 import { usePhoneDirectory } from '@/pages/phones/usePhoneDirectory';
 import { DepartmentOption, PageProps, PAGE_STYLE } from '@/pages/phones/types';
-import { Pagination } from '@/pages/phones/Pagination';
+import { Pagination } from '@/components/Pagination';
 import { PhoneProvider } from '@/pages/phones/context/PhonesContext';
+import { AddDepartmentModal } from "@/pages/phones/partials/AddDepartmentModal";
 
 export default function Index(props: PageProps) {
     return (
@@ -59,6 +60,11 @@ function PhonesContent({
         columnWidths,
         isDatabaseEmpty,
         isSearchActive,
+        onAddDepartmentClick,
+        isAddDepModalOpen,
+        isAddPersonModalOpen,
+        setIsAddDepModalOpen,
+        setIsAddPersonModalOpen,
     } = usePhoneDirectory(departments, filters, flash, departments, allGroups, totalDatabaseCount, pagination);
 
 
@@ -115,6 +121,8 @@ function PhonesContent({
                     </div>
 
                     <DepartmentDropdown
+                        onAddDepartmentClick={onAddDepartmentClick}
+                        isAuthenticated={auth.is_authenticated}
                         options={dropdownOptions}
                         selectedOption={selectedOption}
                         onSelect={(option: DepartmentOption) => {
@@ -122,6 +130,7 @@ function PhonesContent({
                         }}
                     />
                 </div>
+                <AddDepartmentModal onClose={() => setIsAddDepModalOpen(false)} isOpen={isAddDepModalOpen} />
 
                 <div className="relative z-10 flex items-center gap-2">
                     {auth.is_authenticated &&

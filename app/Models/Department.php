@@ -18,7 +18,8 @@ class Department extends Model
 
     protected $fillable = [
         'name',
-        'territory'
+        'file_id',
+        'territory',
     ];
 
     public function phones(): HasMany

@@ -16,17 +16,19 @@ return new class extends Migration
             // lives on departments and an index can't span two tables.
             // I can't see your original line. I assumed nullable because sync() uses
             // whereNotNull('file_id'). Keep whatever modifiers you had, minus unique().
-            $table->string('file_id')->nullable()->index();
 
             $table->string('person')->collation('utf8mb4_unicode_ci');
+            $table->string('extension');
             $table->string('phone');
-            $table->string('extension')->nullable();
+            $table->string('file_id')->nullable()->index();
             $table->string('cabinet')->nullable();
             $table->string('ip')->nullable();
             $table->boolean('isBoss')->default(false);
             $table->boolean('isMiniBoss')->default(false);
             $table->foreignId('department_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['person', 'extension']);
         });
     }
 

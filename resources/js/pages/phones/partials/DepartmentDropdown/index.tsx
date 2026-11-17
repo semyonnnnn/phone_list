@@ -1,4 +1,4 @@
-
+import { IconPlus } from '@tabler/icons-react';
 import { DepartmentDropdownProps } from './types';
 import { useDepartmentDropdown } from './useDepartmentDropdown';
 
@@ -6,6 +6,8 @@ export default function DepartmentDropdown({
     options,
     selectedOption,
     onSelect,
+    isAuthenticated,
+    onAddDepartmentClick,
 }: DepartmentDropdownProps) {
     const {
         isOpen,
@@ -22,28 +24,42 @@ export default function DepartmentDropdown({
 
     return (
         <div className="relative w-[300px] z-50" ref={dropdownRef}>
-            <div
-                className="relative flex items-center border border-black cursor-pointer bg-black"
-                style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                onClick={handleTriggerClick}
-            >
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={isOpen ? searchQuery : selectedOption}
-                    onChange={handleInputChange}
-                    onFocus={handleInputFocus}
-                    placeholder="Все отделы..."
-                    className="w-full text-[1.15rem] p-2 pr-8 bg-transparent text-[#f5f5f5] outline-none cursor-pointer placeholder-[#aaa]"
+            <div className="flex border border-black bg-black">
+                <div
+                    className="relative flex-1 min-w-0 flex items-center cursor-pointer"
                     style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                />
-
-                <span
-                    onClick={handleArrowClick}
-                    className={`absolute right-2 text-white transition-transform duration-200 text-sm select-none ${isOpen ? 'rotate-180' : ''}`}
+                    onClick={handleTriggerClick}
                 >
-                    ▼
-                </span>
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={isOpen ? searchQuery : selectedOption}
+                        onChange={handleInputChange}
+                        onFocus={handleInputFocus}
+                        placeholder="Все отделы..."
+                        className="w-full text-[1.15rem] p-2 pr-8 bg-transparent text-[#f5f5f5] outline-none cursor-pointer placeholder-[#aaa]"
+                        style={{ fontFamily: '"Courier New", Courier, monospace' }}
+                    />
+
+                    <span
+                        onClick={handleArrowClick}
+                        className={`absolute right-2 text-white transition-transform duration-200 text-sm select-none ${isOpen ? 'rotate-180' : ''}`}
+                    >
+                        ▼
+                    </span>
+                </div>
+
+                {isAuthenticated && (
+                    <button
+                        type="button"
+                        onClick={onAddDepartmentClick}
+                        title="Добавить отдел"
+                        aria-label="Добавить отдел"
+                        className="bg-black text-white border-l border-white/50 px-3 flex items-center justify-center hover:bg-white hover:text-black active:bg-[#ccc] transition-colors cursor-pointer shrink-0 select-none"
+                    >
+                        <IconPlus size={18} stroke={2.5} aria-hidden="true" />
+                    </button>
+                )}
             </div>
 
             {isOpen && (

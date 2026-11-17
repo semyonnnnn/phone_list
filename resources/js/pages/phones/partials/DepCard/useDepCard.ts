@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 //////////////////////////////////////////////////////////
 import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
 import { Department, DepCardProps } from '@/pages/phones/partials/DepCard/types';
-import { isBoss, isMiniBoss, sortWithIndices } from '@/pages/phones/phoneRoles';
+import { isBoss, isMiniBoss, sortWithIndices } from '@/pages/phones/partials/phoneRoles';
 
 export function useDepCard(
     dep: Department,

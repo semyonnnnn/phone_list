@@ -22,6 +22,8 @@ export function usePhoneDirectory(
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
     const [selectedOption, setSelectedOption] = useState(filters?.department ?? 'Все отделы');
     const [searchQuery, setSearchQuery] = useState(filters?.search || '');
+    const [isAddDepModalOpen, setIsAddDepModalOpen] = useState(false);
+    const [isAddPersonModalOpen, setIsAddPersonModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 'all' means no territory filter. Separate from data.territory (the upload
@@ -154,11 +156,6 @@ export function usePhoneDirectory(
     }, [pagination?.current_page, departments]);
 
     const hasChanges = useMemo(() => {
-        console.log('--------------------------');
-        console.log('data.departments:', data.departments);
-        console.log('originalDeps:', originalDeps);
-        console.log('--------------------------');
-
         return JSON.stringify(data.departments) !== JSON.stringify(originalDeps);
     }, [data.departments, originalDeps]);
 
@@ -335,6 +332,9 @@ export function usePhoneDirectory(
 
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
     const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');
+    const onAddDepartmentClick = () => {
+        setIsAddDepModalOpen(true);
+    };
 
     return {
         data,
@@ -367,5 +367,10 @@ export function usePhoneDirectory(
         columnWidths,
         isDatabaseEmpty,
         isSearchActive,
+        onAddDepartmentClick,
+        isAddDepModalOpen,
+        isAddPersonModalOpen,
+        setIsAddDepModalOpen,
+        setIsAddPersonModalOpen,
     };
 }

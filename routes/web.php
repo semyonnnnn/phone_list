@@ -25,4 +25,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/files/upload', [FileController::class, 'upload'])->name('files.upload');
 
     Route::post('/department/update', [DepartmentController::class, 'update'])->name('department.update');
+    Route::post('/departments/create', [DepartmentController::class, 'store'])->name('departments.store');
 });
