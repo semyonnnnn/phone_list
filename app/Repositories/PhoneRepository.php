@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
 ///////////////////////////////////////////////
 use App\Models\Phone;
@@ -72,7 +73,12 @@ class PhoneRepository
      */
     public function paginate(?string $search, ?string $department, ?string $territory, int $perPage): LengthAwarePaginator
     {
-        $query = Phone::query()
+        $isAuthenticated = Auth::id() !== null;
+        $query = $isAuthenticated ?
+            Phone::query()
+            ->rightJoin('departments', 'departments.id', '=', 'phones.department_id')
+            ->select('phones.*', 'departments.name as group', 'departments.territory as territory')
+            : Phone::query()
             ->join('departments', 'departments.id', '=', 'phones.department_id')
             ->select('phones.*', 'departments.name as group', 'departments.territory as territory');
 

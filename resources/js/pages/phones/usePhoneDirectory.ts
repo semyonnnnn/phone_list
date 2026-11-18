@@ -22,8 +22,11 @@ export function usePhoneDirectory(
     const [originalDeps, setOriginalDeps] = useState(initialDeps);
     const [selectedOption, setSelectedOption] = useState(filters?.department ?? 'Все отделы');
     const [searchQuery, setSearchQuery] = useState(filters?.search || '');
+    const [personModal, setPersonModal] = useState<{ isOpen: boolean; department: Department | null }>({
+        isOpen: false,
+        department: null,
+    });
     const [isAddDepModalOpen, setIsAddDepModalOpen] = useState(false);
-    const [isAddPersonModalOpen, setIsAddPersonModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 'all' means no territory filter. Separate from data.territory (the upload
@@ -369,8 +372,8 @@ export function usePhoneDirectory(
         isSearchActive,
         onAddDepartmentClick,
         isAddDepModalOpen,
-        isAddPersonModalOpen,
+        personModal,
         setIsAddDepModalOpen,
-        setIsAddPersonModalOpen,
+        setPersonModal,
     };
 }

@@ -34,14 +34,15 @@ class PhoneService
             ->groupBy('department_id')
             ->map(fn($group) => [
                 'group' => [
-                    // every phone in the group carries the same department fields, so the first is enough
+                    'id'        => $group->first()->department_id,
                     'name'      => $group->first()->group,
                     'territory' => $group->first()->territory,
                 ],
-                'phones' => $group->values()->all(),
+                'phones' => $group->filter(fn($row) => $row->id !== null)->values()->all(),
             ])
             ->values()
             ->all();
+
 
         return [
             'departments' => $departments,

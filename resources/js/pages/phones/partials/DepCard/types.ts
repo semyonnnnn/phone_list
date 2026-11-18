@@ -41,6 +41,7 @@ export interface DepCardProps {
         cabinetWidth: number;
         ipWidth: number;
     };
+    onAddPersonClick: (department: Department) => void;
 }
 
 export interface GroupNameInputProps {
@@ -59,6 +60,7 @@ export interface DebouncedInputProps {
 }
 
 export type DepartmentGroup = {
+    id: number | null;
     name: string;
     territory: TerritoryKey; // was string
 };

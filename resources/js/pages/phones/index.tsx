@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { UploadIcon } from "lucide-react";
+import { useEffect } from 'react';
 //////////////////////////////////////////////////
 import DepCard from '@/pages/phones/partials/DepCard';
 import { PopUp } from '@/pages/phones/partials/PopUp';
@@ -9,6 +10,7 @@ import { DepartmentOption, PageProps, PAGE_STYLE } from '@/pages/phones/types';
 import { Pagination } from '@/components/Pagination';
 import { PhoneProvider } from '@/pages/phones/context/PhonesContext';
 import { AddDepartmentModal } from "@/pages/phones/partials/AddDepartmentModal";
+import { AddPersonModal } from '@/pages/phones/partials/AddPersonModal';
 
 export default function Index(props: PageProps) {
     return (
@@ -62,11 +64,10 @@ function PhonesContent({
         isSearchActive,
         onAddDepartmentClick,
         isAddDepModalOpen,
-        isAddPersonModalOpen,
         setIsAddDepModalOpen,
-        setIsAddPersonModalOpen,
+        personModal,
+        setPersonModal,
     } = usePhoneDirectory(departments, filters, flash, departments, allGroups, totalDatabaseCount, pagination);
-
 
     return (
         <div
@@ -127,10 +128,13 @@ function PhonesContent({
                         selectedOption={selectedOption}
                         onSelect={(option: DepartmentOption) => {
                             setSelectedOption(option.label);
-                        }}
-                    />
+                        }} />
                 </div>
                 <AddDepartmentModal onClose={() => setIsAddDepModalOpen(false)} isOpen={isAddDepModalOpen} />
+                <AddPersonModal
+                    department={personModal.department}
+                    onClose={() => setPersonModal({ isOpen: false, department: null })}
+                    isOpen={personModal.isOpen} />
 
                 <div className="relative z-10 flex items-center gap-2">
                     {auth.is_authenticated &&
@@ -139,8 +143,7 @@ function PhonesContent({
                                 type="button"
                                 onClick={() => handleTerritoryUpload('ekb')}
                                 className="flex gap-2 text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
-                                style={{ fontFamily: '"Courier New", Courier, monospace' }}
-                            >
+                                style={{ fontFamily: '"Courier New", Courier, monospace' }}>
                                 <div>ЕКБ</div>
                                 <UploadIcon />
                             </button>
@@ -199,15 +202,6 @@ function PhonesContent({
                             Загрузите файл через панель администратора!
                         </div>
                     </div>
-                ) : data.departments.length === 0 ? (
-                    <div className="border-2 border-[#888] p-8 text-center bg-black/90 shadow-[6px_6px_0px_rgba(255,255,255,0.15)] text-[#f0f0f0]">
-                        <div className="text-[1.25rem] font-bold tracking-wider uppercase mb-2 text-[#ffcc00]">
-                            [!]  Ничего не найдено
-                        </div>
-                        <div className="text-[1.1rem] text-[#aaa]">
-                            {isSearchActive ? `По запросу "${filters?.search}" совпадений не обнаружено.` : 'В выбранном отделе нет записей.'}
-                        </div>
-                    </div>
                 ) : (
                     <>
                         <Pagination
@@ -221,6 +215,7 @@ function PhonesContent({
                                 expects, so no annotation is needed. */}
                             {data.departments.map((dep, depIndex) => (
                                 <DepCard
+                                    onAddPersonClick={() => setPersonModal({ isOpen: true, department: dep })}
                                     columnWidths={columnWidths}
                                     departmentNameWidth={departmentNameWidth}
                                     // both are needed, because react strips key away

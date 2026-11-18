@@ -11,6 +11,12 @@ export function useDepCard(
     errors: Partial<Record<string, string>>,
     onFieldChange: DepCardProps['onFieldChange'],
     onBossChange: DepCardProps['onBossChange'],
+    columnWidths: {
+        personWidth: number;
+        phoneWidth: number;
+        cabinetWidth: number;
+        ipWidth: number;
+    },
     onGroupNameChange?: DepCardProps['onGroupNameChange'],
     onEditBoss?: (depIndex: number) => void,
     onEditIsMiniBoss?: (depIndex: number) => void,
@@ -101,6 +107,34 @@ export function useDepCard(
 
     const maxNameLen = Math.max(5, ...phones.map((r) => (r.person || '').length)) + 6;
 
+    const buttonBaseClass =
+        'relative bg-white text-[#111] border border-[#ccc] px-3 py-2 text-[0.95rem] font-bold flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 shadow-[3px_3px_0px_#000] hover:shadow-[1px_1px_0px_#000] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all duration-100';
+
+    const buttonStyle = {
+        fontFamily: '"Courier New", Courier, monospace',
+        clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
+        borderRadius: 0,
+    } as const;
+
+    const rowCellBorder = (active: boolean) => (active ? 'border-b border-white' : '');
+
+    const groupError = errors?.[`departments.${depIndex}.group.name`];
+    const pencilSpace = isAuthenticated ? '27px + 0.5rem' : '0px';
+
+    const hasPickerCol = activeColumn === 'isBoss' || activeColumn === 'isMiniBoss';
+    const gridTemplateColumns = [
+        ...(hasPickerCol ? ['13ch'] : []),
+        `minmax(0, calc(${columnWidths.personWidth}ch + 4.5rem))`,
+        `calc(${columnWidths.phoneWidth}ch + 2rem)`,
+        '12ch',
+        'minmax(8ch, 1fr)',
+        `calc(${columnWidths.ipWidth}ch + 2rem)`,
+    ].join(' ');
+
+    // const onAddPersonClick = () => {
+    //     console.log('hi');
+    // };
+
     return {
         phones,
         activeColumn,
@@ -123,5 +157,13 @@ export function useDepCard(
         handleMiniBossCheckboxToggle,
         handleGroupSubmit,
         handleGroupKeyDown,
+        pencilSpace,
+        groupError,
+        buttonBaseClass,
+        buttonStyle,
+        gridTemplateColumns,
+        hasPickerCol,
+        rowCellBorder,
+        // onAddPersonClick,
     };
 }

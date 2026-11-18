@@ -2,14 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DepartmentStoreRequest;
+use App\Models\Department;
+use Illuminate\Http\RedirectResponse;
+
 class DepartmentController extends Controller
 {
     public function update()
     {
         dd('hi');
     }
-    public function store()
+
+    public function store(DepartmentStoreRequest $request): RedirectResponse
     {
-        dd('hi from store in dep');
+        $data = $request->validated();
+
+        Department::create([
+            'name' => trim($data['name']),
+            'territory' => $data['territory'],
+            'file_id' => null,
+        ]);
+
+        return back()->with('success', 'Отдел успешно создан.');
     }
 }
