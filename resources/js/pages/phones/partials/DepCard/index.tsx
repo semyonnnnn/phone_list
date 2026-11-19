@@ -65,7 +65,6 @@ export default function DepCard({
         onEditBoss,
         onEditIsMiniBoss
     );
-
     const isEmpty = dep.phones.length === 0;
 
     return (

@@ -73,14 +73,16 @@ class PhoneRepository
      */
     public function paginate(?string $search, ?string $department, ?string $territory, int $perPage): LengthAwarePaginator
     {
-        $isAuthenticated = Auth::id() !== null;
-        $query = $isAuthenticated ?
-            Phone::query()
-            ->rightJoin('departments', 'departments.id', '=', 'phones.department_id')
-            ->select('phones.*', 'departments.name as group', 'departments.territory as territory')
-            : Phone::query()
-            ->join('departments', 'departments.id', '=', 'phones.department_id')
-            ->select('phones.*', 'departments.name as group', 'departments.territory as territory');
+        $isAuthenticated = Auth::check();
+
+        $query = Department::query()
+            ->{$isAuthenticated ? 'leftJoin' : 'join'}('phones', 'phones.department_id', '=', 'departments.id')
+            ->select(
+                'phones.*',
+                'departments.id as department_id',
+                'departments.name as group',
+                'departments.territory as territory'
+            );
 
         if ($territory !== null && in_array($territory, Territory::keys(), true)) {
             $query->where('departments.territory', $territory);

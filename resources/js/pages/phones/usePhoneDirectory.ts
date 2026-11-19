@@ -29,11 +29,6 @@ export function usePhoneDirectory(
     const [isAddDepModalOpen, setIsAddDepModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // 'all' means no territory filter. Separate from data.territory (the upload
-    // target), which must always be a real TerritoryKey.
-    // Starts from what the server applied, so a reload or a pagination link keeps the filter.
-    // Explicit generic: without it TypeScript infers a wide type from the fallback.
-
     const { globalTerritoryValue, closePicker } = usePhoneContext();
 
     const [showSuccess, setShowSuccess] = useState(false);

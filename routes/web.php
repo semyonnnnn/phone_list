@@ -20,6 +20,7 @@ Route::get('/files/download', [FileController::class, 'download'])->name('files.
 // Protected REST API routes for table operations (requires authentication)
 Route::middleware(['auth'])->group(function () {
     Route::put('/phones', [PhoneController::class, 'update'])->name('phones.update');
+    Route::post('/phones', [PhoneController::class, 'store'])->name('phones.store');
 
     // File Management Routes (both POST, protected by auth)
     Route::post('/files/upload', [FileController::class, 'upload'])->name('files.upload');

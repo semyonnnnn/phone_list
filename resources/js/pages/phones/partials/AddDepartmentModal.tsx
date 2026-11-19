@@ -10,7 +10,6 @@ import {
     DialogClose,
 } from '@/components/ui/dialog';
 import { TerritoryKey } from '@/types';
-
 interface AddDepartmentModalProps {
     isOpen: boolean;
     onClose: () => void;

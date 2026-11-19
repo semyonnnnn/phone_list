@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Phone extends Model
 {
@@ -26,5 +27,10 @@ class Phone extends Model
             'isBoss' => 'boolean',
             'isMiniBoss' => 'boolean',
         ];
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 }

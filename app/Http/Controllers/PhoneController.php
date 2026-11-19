@@ -9,6 +9,9 @@ use App\Http\Requests\PhoneUpdateRequest;
 use App\Services\PhoneService;
 use App\Enums\Territory;
 use App\Http\Requests\PhoneIndexRequest;
+use App\Http\Requests\PhoneStoreRequest;
+use App\Models\Phone;
+use Illuminate\Http\Request;
 
 class PhoneController extends Controller
 {
@@ -62,5 +65,20 @@ class PhoneController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Справочник успешно обновлен.');
+    }
+    public function store(PhoneStoreRequest $r)
+    {
+        $data = $r->validated();
+
+        Phone::create([
+            'person' => $data['person'],
+            'extension' => $data['extension'],
+            'phone' => $data['phone'],
+            'cabinet' => $data['cabinet'],
+            'ip' => $data['ip'],
+            'isBoss' => $data['isBoss'],
+            'isMiniBoss' => $data['isMiniBoss'],
+            'department_id' => $data['department_id'],
+        ]);
     }
 }
