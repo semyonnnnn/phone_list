@@ -153,6 +153,10 @@ export function usePhoneDirectory(
         closePicker();
     }, [pagination?.current_page, departments]);
 
+    useEffect(() => {
+        clearErrors();
+    }, [pagination?.current_page]);
+
     const hasChanges = useMemo(() => {
         return JSON.stringify(data.departments) !== JSON.stringify(originalDeps);
     }, [data.departments, originalDeps]);
