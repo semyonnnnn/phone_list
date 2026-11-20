@@ -18,7 +18,7 @@ return new class extends Migration
             // whereNotNull('file_id'). Keep whatever modifiers you had, minus unique().
 
             $table->string('person')->collation('utf8mb4_unicode_ci');
-            $table->string('extension');
+            $table->string('extension')->nullable();
             $table->string('phone');
             $table->string('file_id')->nullable()->index();
             $table->string('cabinet')->nullable();
@@ -28,7 +28,7 @@ return new class extends Migration
             $table->foreignId('department_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['person', 'extension']);
+            $table->unique(['phone', 'extension']);
         });
     }
 

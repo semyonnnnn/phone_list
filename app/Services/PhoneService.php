@@ -89,10 +89,12 @@ class PhoneService
 
             // One array per row again, with the group kept next to the person.
             // That pairing is exactly what the previous version lost by splitting them into two arrays.
+            $extension = $this->clean($row['extension'] ?? '');
+
             $cleanRows[] = [
                 'group'     => $this->clean($row['group'] ?? ''),
                 'person'    => $this->clean($row['person'] ?? ''),
-                'extension' => $this->clean($row['extension'] ?? ''),
+                'extension' => $extension !== '' ? $extension : null,
                 'phone'     => $this->clean($row['phone'] ?? ''),
                 'file_id'   => $fileId,
             ];
@@ -146,49 +148,75 @@ class PhoneService
     // a name clash is thrown as a ValidationException instead.
     public function update(array $departments): void
     {
-        // ---- Pre-check group names BEFORE touching the DB ----
-        // The unique index on departments.name would make the UPDATE fail with a
-        // 500, so ask first and answer with a normal Inertia validation error.
         $nameErrors = [];
-        $seenNames = [];           // names claimed so far in THIS payload
-        $departmentIdByIndex = []; // reused in the transaction, saves a second lookup
+        $phoneErrors = [];
+        $seenNames = [];
+        $seenPhoneExt = [];
+        $departmentIdByIndex = [];
+
+        // Collect all phone IDs being updated in this batch so DB checks
+        // don't falsely conflict with rows that are being overwritten right now.
+        $payloadPhoneIds = collect($departments)
+            ->pluck('phones')
+            ->flatten(1)
+            ->pluck('id')
+            ->filter()
+            ->all();
 
         foreach ($departments as $depIndex => $department) {
             $group = $department['group'] ?? null;
-            // The payload has no department id, so find it through the first phone.
             $firstPhoneId = $department['phones'][0]['id'] ?? null;
 
-            if (empty($group) || !$firstPhoneId) {
-                continue;
+            if (!empty($group) && $firstPhoneId) {
+                $departmentId = $this->phoneRepository->departmentIdOf($firstPhoneId);
+                $departmentIdByIndex[$depIndex] = $departmentId;
+
+                $takenInDb = $this->departmentRepository->uniqueBindExists($group, $departmentId);
+                $key = mb_strtolower($group['name']) . '|' . strtolower($group['territory']);
+                $takenInPayload = isset($seenNames[$key]);
+                $seenNames[$key] = true;
+
+                if ($takenInDb || $takenInPayload) {
+                    $nameErrors["departments.{$depIndex}.group"] = "Отдел с названием «{$group['name']}» уже существует.";
+                }
             }
 
-            $departmentId = $this->phoneRepository->departmentIdOf($firstPhoneId);
-            $departmentIdByIndex[$depIndex] = $departmentId;
+            foreach ($department['phones'] ?? [] as $phoneIndex => $phoneData) {
+                $phoneId   = $phoneData['id'] ?? null;
+                $phone     = $this->clean($phoneData['phone'] ?? null);
+                $extension = $this->clean($phoneData['extension'] ?? null);
 
-            // Taken by ANOTHER department in the DB.
-            $takenInDb = $this->departmentRepository->uniqueBindExists($group, $departmentId);
+                if (!$phoneId || $phone === '') {
+                    continue;
+                }
 
-            // Two departments renamed to the same name in one save. The DB can't see
-            // this yet, because neither rename has been written. mb_strtolower is only
-            // an approximation of the collation; the unique index stays the backstop.
-            $key = mb_strtolower($group['name']) . '|' . strtolower($group['territory']);
-            $takenInPayload = isset($seenNames[$key]);
-            $seenNames[$key] = true;
+                $pairKey = mb_strtolower($phone) . '|' . mb_strtolower($extension);
+                $takenInPayload = isset($seenPhoneExt[$pairKey]);
+                $seenPhoneExt[$pairKey] = true;
 
-            if ($takenInDb || $takenInPayload) {
-                // Key = the form's error-bag path, so useForm().errors exposes it
-                // at errors['departments.{index}.group'] and the card can show it.
-                $nameErrors["departments.{$depIndex}.group"] = "Отдел с названием «{$group['name']}» уже существует.";
+                $existsInDb = \App\Models\Phone::where('phone', $phone)
+                    ->when(
+                        $extension === '',
+                        fn($q) => $q->whereNull('extension'),
+                        fn($q) => $q->where('extension', $extension)
+                    )
+                    ->whereNotIn('id', $payloadPhoneIds)
+                    ->exists();
+
+                if ($existsInDb || $takenInPayload) {
+                    $phoneErrors["departments.{$depIndex}.phones.{$phoneIndex}.phone"] = $extension !== ''
+                        ? "Телефон '{$phone}' с добавочным '{$extension}' уже существует."
+                        : "Телефон '{$phone}' уже существует.";
+                }
             }
         }
 
-        // Nothing has been written yet, so nothing needs rolling back.
-        if (!empty($nameErrors)) {
-            throw ValidationException::withMessages($nameErrors);
+        $allErrors = array_merge($nameErrors, $phoneErrors);
+        if (!empty($allErrors)) {
+            throw ValidationException::withMessages($allErrors);
         }
 
         DB::transaction(function () use ($departments, $departmentIdByIndex) {
-
             $selectedBossIds = collect($departments)
                 ->pluck('phones')
                 ->flatten(1)
@@ -205,15 +233,11 @@ class PhoneService
                 }
 
                 foreach ($phones as $phoneData) {
-                    // clean() returns '' for null or empty input. The columns are
-                    // nullable and used to get null, so '' is turned back into null
-                    // here instead of silently storing empty strings.
-                    $cabinet = $this->clean($phoneData['cabinet'] ?? null);
-                    $ip      = $this->clean($phoneData['ip'] ?? null);
-                    $person  = $this->clean($phoneData['person'] ?? null);
-                    $phone  = $this->clean($phoneData['phone'] ?? null);
-                    $extension  = $this->clean($phoneData['extension'] ?? null);
-
+                    $cabinet   = $this->clean($phoneData['cabinet'] ?? null);
+                    $ip        = $this->clean($phoneData['ip'] ?? null);
+                    $person    = $this->clean($phoneData['person'] ?? null);
+                    $phone     = $this->clean($phoneData['phone'] ?? null);
+                    $extension = $this->clean($phoneData['extension'] ?? null);
 
                     $this->phoneRepository->updateEditable(
                         $phoneData['id'],
@@ -237,6 +261,7 @@ class PhoneService
             }
         });
     }
+
 
     // One place for sanitizing, used by both upload() and update().
     private function clean(mixed $value): string

@@ -56,10 +56,6 @@ class PhoneController extends Controller
     // PhoneUpdateRequest
     public function update(PhoneUpdateRequest $r, PhoneService $phones)
     {
-        // dd('hi');
-        // A name clash throws a ValidationException from the service. Laravel turns
-        // it into the same redirect-back-with-errors that back()->withErrors() gave,
-        // so useForm's `errors` and the card's error display keep working.
         $phones->update($r->validated()['departments']);
 
         return redirect()

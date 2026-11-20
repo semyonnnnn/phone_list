@@ -10,4 +10,4 @@
 
 # FIX
 
-- duplicates no warning
+- reset errors on page switch

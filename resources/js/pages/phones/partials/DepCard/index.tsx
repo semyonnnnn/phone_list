@@ -273,6 +273,10 @@ export default function DepCard({
                                     sortedIdx < sortedPhonesWithIndices.length - 1 ? 'border-b border-[#ccc]/50' : '';
                                 const errorOutlineClass = rowHasServerError ? 'border-t-2 border-b-2 border-red-600' : '';
 
+                                const personErrMsg = errors?.[`departments.${depIndex}.phones.${originalIndex}.phone`];
+                                // const hasAnyRowError = rowHasServerError || Boolean(personErrMsg);
+
+
                                 return (
                                     <div key={row.id ?? originalIndex} className="contents group">
                                         {activeColumn === 'isBoss' && (
@@ -447,8 +451,7 @@ export default function DepCard({
                                         <div
                                             className={`p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
                                                 anyBossActive
-                                            )} ${cellBgClass}`}
-                                        >
+                                            )} ${cellBgClass}`}>
                                             <DebouncedInput
                                                 readOnly={!isAuthenticated}
                                                 value={row?.ip}
@@ -461,7 +464,16 @@ export default function DepCard({
                                                     } ${bossActive ? 'font-bold' : ''}`}
                                             />
                                         </div>
+                                        {personErrMsg && (
+                                            <div
+                                                className={`col-span-full px-4 py-1.5 bg-red-50/95 text-red-600 text-[0.8rem] font-bold flex items-center gap-1.5 border-l-4 border-l-red-600 ${rowDividerClass}`}
+                                            >
+                                                <IconExclamationCircle size={14} stroke={2.5} aria-hidden="true" className="shrink-0" />
+                                                <span>{personErrMsg}</span>
+                                            </div>
+                                        )}
                                     </div>
+
                                 );
                             })}
                         </div>
