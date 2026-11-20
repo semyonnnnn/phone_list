@@ -13,7 +13,6 @@ return new class extends Migration
             $table->id();
 
             $table->string('name')->collation('utf8mb4_unicode_ci');
-            $table->string('file_id')->nullable()->index();
             $table->enum('territory', Territory::keys())->default(Territory::ekb->name);
 
             $table->timestamps();

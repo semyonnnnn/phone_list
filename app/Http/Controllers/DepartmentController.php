@@ -20,7 +20,6 @@ class DepartmentController extends Controller
         Department::create([
             'name' => trim($data['name']),
             'territory' => $data['territory'],
-            'file_id' => null,
         ]);
 
         return back()->with('success', 'Отдел успешно создан.');

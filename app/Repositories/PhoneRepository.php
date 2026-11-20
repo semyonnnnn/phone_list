@@ -26,10 +26,6 @@ class PhoneRepository
             $territoryDepartmentIds = Department::where('territory', $territory)->pluck('id');
 
             foreach ($rows as $row) {
-                // Look for this file_id only among phones of THIS territory. Matching on
-                // file_id alone is what pulled the other territory's phones into this upload.
-                // Matching by territory (not by department) also means a person who moved to
-                // another department of the same territory is updated, not duplicated.
                 $phone = Phone::where('file_id', $row['file_id'])
                     ->whereIn('department_id', $territoryDepartmentIds)
                     ->first();
@@ -54,11 +50,11 @@ class PhoneRepository
                 }
             }
 
-            // Delete only phones of THIS territory that are no longer in the file.
-            // Still relies on the service never passing an empty array (it returns early then).
-            Phone::whereNotNull('file_id')
-                ->whereIn('department_id', $territoryDepartmentIds)
-                ->whereNotIn('file_id', array_column($rows, 'file_id'))
+            Phone::whereIn('department_id', $territoryDepartmentIds)
+                ->where(function ($q) use ($rows) {
+                    $q->whereNull('file_id')
+                        ->orWhereNotIn('file_id', array_column($rows, 'file_id'));
+                })
                 ->delete();
         });
     }

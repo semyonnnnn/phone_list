@@ -105,9 +105,6 @@ class PhoneService
             return;
         }
 
-        // One transaction around all three steps: if the phone sync fails,
-        // the departments created in step 1 are rolled back too. The repositories' own
-        // transactions nest inside this one without problems.
         DB::transaction(function () use ($cleanRows, $territory) {
             // Step 1: collect distinct, non-empty group names (keyed by name = de-duplication).
             $names = [];
@@ -118,15 +115,11 @@ class PhoneService
             }
             $names = array_values($names);
 
-            // Was $cleanRows. syncByName expects a list of name strings, so pass $names.
             $departmentIds = $this->departmentRepository->syncByName($names, $territory);
 
             // Step 2: build the phone rows with the department id looked up by group name.
             $phoneRows = [];
             foreach ($cleanRows as $row) {
-                // Rows with an empty group were excluded from $names, so they have no id.
-                // Without this skip, $departmentIds[''] would be an "undefined array key" error
-                // as soon as the first bug is fixed.
                 if ($row['group'] === '') {
                     continue;
                 }
@@ -141,6 +134,15 @@ class PhoneService
             }
 
             $this->phoneRepository->sync($phoneRows, $territory);
+
+            // Step 3: remove any department in this territory that has no phones referencing it.
+            Department::where('territory', $territory)
+                ->whereNotExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('phones')
+                        ->whereColumn('phones.department_id', 'departments.id');
+                })
+                ->delete();
         });
     }
 

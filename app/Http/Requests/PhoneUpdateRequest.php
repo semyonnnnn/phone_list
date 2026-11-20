@@ -30,7 +30,6 @@ class PhoneUpdateRequest extends FormRequest
             'departments.*.phones.*.person' => ['nullable', 'string', 'max:255'],
             'departments.*.phones.*.phone' => ['nullable', 'string', 'max:255'],
             'departments.*.phones.*.extension' => ['nullable', 'string', 'max:255'],
-            'departments.*.phones.*.file_id' => ['nullable', 'string', 'max:255'],
 
             // Fields the user edits.
             'departments.*.phones.*.cabinet' => ['nullable', 'string', 'max:255'],
@@ -66,8 +65,6 @@ class PhoneUpdateRequest extends FormRequest
             'departments.*.phones.*.phone.max' => 'Поле "Телефон" не должно превышать 255 символов.',
             'departments.*.phones.*.extension.string' => 'Поле "Добавочный номер" должно быть строкой.',
             'departments.*.phones.*.extension.max' => 'Поле "Добавочный номер" не должно превышать 255 символов.',
-            'departments.*.phones.*.file_id.string' => 'Поле "Идентификатор файла" должно быть строкой.',
-            'departments.*.phones.*.file_id.max' => 'Поле "Идентификатор файла" не должно превышать 255 символов.',
 
             'departments.*.phones.*.cabinet.string' => 'Поле "Кабинет" должно быть строкой.',
             'departments.*.phones.*.cabinet.max' => 'Поле "Кабинет" не должно превышать 255 символов.',
