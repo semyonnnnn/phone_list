@@ -42,6 +42,14 @@ export interface DepCardProps {
         ipWidth: number;
     };
     onAddPersonClick: (department: Department) => void;
+    onRequestDelete: React.Dispatch<
+        React.SetStateAction<{
+            route: string;
+            title: string;
+            territory: string;
+            message: string;
+        } | null>
+    >;
 }
 
 export interface GroupNameInputProps {
@@ -60,9 +68,9 @@ export interface DebouncedInputProps {
 }
 
 export type DepartmentGroup = {
-    id: number | null;
+    id: number;
     name: string;
-    territory: TerritoryKey; // was string
+    territory: TerritoryKey;
 };
 
 export interface TerritorySwitchProps {

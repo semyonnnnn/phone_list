@@ -6,7 +6,6 @@ import { DEFAULT_TERRITORY, TerritoryKey } from '@/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 export function usePhoneDirectory(
-    initialDeps: PageProps['departments'],
     filters: PageProps['filters'],
     flash: PageProps['flash'],
     departments: Department[],
@@ -19,7 +18,7 @@ export function usePhoneDirectory(
         total: number;
     },
 ) {
-    const [originalDeps, setOriginalDeps] = useState(initialDeps);
+    const [originalDeps, setOriginalDeps] = useState(departments);
     const [selectedOption, setSelectedOption] = useState(filters?.department ?? 'Все отделы');
     const [searchQuery, setSearchQuery] = useState(filters?.search || '');
     const [personModal, setPersonModal] = useState<{ isOpen: boolean; department: Department | null }>({
@@ -35,6 +34,13 @@ export function usePhoneDirectory(
     const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const popupStartedAtRef = useRef<number>(0);
     const popupRemainingRef = useRef(4000);
+
+    const [deleteTarget, setDeleteTarget] = useState<{
+        route: string;
+        title: string;
+        territory: string;
+        message: string;
+    } | null>(null);
 
     // Show the popup when the server sends a success flash, and hide it after 4 s.
     // pausePopupTimer/resumePopupTimer below rely on the refs set here.
@@ -85,7 +91,7 @@ export function usePhoneDirectory(
     };
 
     const { data, setData, put, processing, errors, clearErrors } = useForm<PhoneForm>({
-        departments: initialDeps,
+        departments: departments,
         territory: DEFAULT_TERRITORY,
     });
     const errorBag = errors as unknown as Record<string, string>;
@@ -93,12 +99,12 @@ export function usePhoneDirectory(
     const pageErrors = (page.props as unknown as { errors?: Record<string, string> }).errors;
 
     useEffect(() => {
-        if (!initialDeps) return;
+        if (!departments) return;
         if (pageErrors && Object.keys(pageErrors).length > 0) return;
 
-        setData('departments', initialDeps);
-        setOriginalDeps(JSON.parse(JSON.stringify(initialDeps)));
-    }, [initialDeps]);
+        setData('departments', departments);
+        setOriginalDeps(JSON.parse(JSON.stringify(departments)));
+    }, [departments]);
 
     const handleBossChange = (depIndex: number, targetRowIndex: number) => {
         const updatedDeps = data.departments.map((dep, currentDepIndex) => {
@@ -374,5 +380,7 @@ export function usePhoneDirectory(
         personModal,
         setIsAddDepModalOpen,
         setPersonModal,
+        deleteTarget,
+        setDeleteTarget,
     };
 }

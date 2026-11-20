@@ -11,6 +11,7 @@ import { Pagination } from '@/components/Pagination';
 import { PhoneProvider } from '@/pages/phones/context/PhonesContext';
 import { AddDepartmentModal } from "@/pages/phones/partials/AddDepartmentModal";
 import { AddPersonModal } from '@/pages/phones/partials/AddPersonModal';
+import { DeleteConfirmModal } from '@/pages/phones/partials/DeleteConfirmModal';
 
 export default function Index(props: PageProps) {
     return (
@@ -67,7 +68,9 @@ function PhonesContent({
         setIsAddDepModalOpen,
         personModal,
         setPersonModal,
-    } = usePhoneDirectory(departments, filters, flash, departments, allGroups, totalDatabaseCount, pagination);
+        setDeleteTarget,
+        deleteTarget
+    } = usePhoneDirectory(filters, flash, departments, allGroups, totalDatabaseCount, pagination);
 
     return (
         <div
@@ -135,6 +138,7 @@ function PhonesContent({
                     department={personModal.department}
                     onClose={() => setPersonModal({ isOpen: false, department: null })}
                     isOpen={personModal.isOpen} />
+                <DeleteConfirmModal target={deleteTarget} onClose={() => setDeleteTarget(null)} />
 
                 <div className="relative z-10 flex items-center gap-2">
                     {auth.is_authenticated &&
@@ -231,6 +235,7 @@ function PhonesContent({
                                     onGroupNameChange={handleGroupNameChange}
                                     territories={territories}
                                     handleTerritoryChange={handleTerritoryChange}
+                                    onRequestDelete={setDeleteTarget}
                                 />
                             ))}
                         </div>

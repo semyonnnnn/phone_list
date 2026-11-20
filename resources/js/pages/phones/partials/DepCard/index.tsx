@@ -5,6 +5,7 @@ import {
     IconCheck,
     IconExclamationCircle,
     IconPlus,
+    IconX,
 } from '@tabler/icons-react';
 import { DepCardProps } from './types';
 import { useDepCard } from './useDepCard';
@@ -25,10 +26,10 @@ export default function DepCard({
     bossChanged,
     isMiniBossChanged,
     errors,
-    territories,
     handleTerritoryChange,
     departmentNameWidth,
     columnWidths,
+    onRequestDelete,
 }: DepCardProps) {
     const {
         activeColumn,
@@ -121,6 +122,23 @@ export default function DepCard({
                             isAuthenticated={isAuthenticated}
                             onChange={(territory) => handleTerritoryChange(depIndex, territory)}
                         />
+
+                        {isAuthenticated && (
+                            <button
+                                type="button"
+                                onClick={() => onRequestDelete({
+                                    route: 'departments.destroy',
+                                    title: groupName,
+                                    territory: dep.group.territory,
+                                    message: 'hey'
+                                })}
+                                title="Удалить отдел"
+                                aria-label="Удалить отдел"
+                                className="inline-flex self-stretch items-center justify-center border border-l-0 border-[#667] bg-[#222]/50 backdrop-blur-[1.8px] px-3 text-base text-[#ddd] outline-none cursor-pointer transition-colors hover:bg-red-600/80 hover:border-red-400 hover:text-white active:bg-red-700 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                            >
+                                <IconX size={18} stroke={1.75} aria-hidden="true" />
+                            </button>
+                        )}
                     </div>
 
                     {isAuthenticated && (

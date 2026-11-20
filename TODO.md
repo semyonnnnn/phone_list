@@ -7,4 +7,4 @@
 
 # FIX
 
-- ...
+- make boss/miniboss to function as checkboxes
