@@ -21,10 +21,12 @@ Route::get('/files/download', [FileController::class, 'download'])->name('files.
 Route::middleware(['auth'])->group(function () {
     Route::put('/phones', [PhoneController::class, 'update'])->name('phones.update');
     Route::post('/phones', [PhoneController::class, 'store'])->name('phones.store');
+    Route::delete('/phones/{id}', [PhoneController::class, 'destroy'])->name('phones.destroy');
 
     // File Management Routes (both POST, protected by auth)
     Route::post('/files/upload', [FileController::class, 'upload'])->name('files.upload');
 
     Route::post('/department/update', [DepartmentController::class, 'update'])->name('department.update');
     Route::post('/departments/create', [DepartmentController::class, 'store'])->name('departments.store');
+    Route::delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
 });

@@ -127,10 +127,10 @@ export default function DepCard({
                             <button
                                 type="button"
                                 onClick={() => onRequestDelete({
-                                    route: 'departments.destroy',
+                                    route: route('departments.destroy', dep.group.id),
                                     title: groupName,
                                     territory: dep.group.territory,
-                                    message: 'hey'
+                                    message: `Удалить отдел "${groupName}"?`,
                                 })}
                                 title="Удалить отдел"
                                 aria-label="Удалить отдел"
@@ -252,6 +252,9 @@ export default function DepCard({
                                 <div className="border-b border-[#ccc] bg-[#e5e5e5]/90 p-3 flex items-center whitespace-nowrap">
                                     <span className="px-[0.3rem]">IP</span>
                                 </div>
+                                {isAuthenticated && (
+                                    <div className="border-b border-l border-[#ccc] bg-[#e5e5e5]/90 p-3" />
+                                )}
                             </div>
 
                             {/* Body Rows */}
@@ -467,7 +470,7 @@ export default function DepCard({
 
                                         {/* IP */}
                                         <div
-                                            className={`p-3 flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
+                                            className={`p-3 border-r border-[#ccc] flex items-center min-w-0 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
                                                 anyBossActive
                                             )} ${cellBgClass}`}>
                                             <DebouncedInput
@@ -482,6 +485,27 @@ export default function DepCard({
                                                     } ${bossActive ? 'font-bold' : ''}`}
                                             />
                                         </div>
+                                        {isAuthenticated && (
+                                            <div className={`flex items-center justify-center p-3 transition-colors ${rowBg} ${rowDividerClass} ${errorOutlineClass} ${rowCellBorder(
+                                                anyBossActive
+                                            )} ${cellBgClass}`}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onRequestDelete({
+                                                        route: route('phones.destroy', dep.group.id),
+                                                        title: groupName,
+                                                        territory: dep.group.territory,
+                                                        message: `Удалить запись "${groupName}"?`,
+                                                    })}
+                                                    title="Удалить запись"
+                                                    aria-label="Удалить запись"
+                                                    className="inline-flex self-stretch items-center justify-center border border-r-0 border-b-0 border-[#667] backdrop-blur-[1.8px] px-3 text-gray-600 outline-none cursor-pointer transition-colors
+
+                                                    hover:bg-gray-200/80 hover:border-red-400 hover:text-red-500 active:bg-gray-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black hover:shadow-xl">
+                                                    <IconX size={18} stroke={1.75} aria-hidden="true" />
+                                                </button>
+                                            </div>
+                                        )}
                                         {personErrMsg && (
                                             <div
                                                 className={`col-span-full px-4 py-1.5 bg-red-50/95 text-red-600 text-[0.8rem] font-bold flex items-center gap-1.5 border-l-4 border-l-red-600 ${rowDividerClass}`}

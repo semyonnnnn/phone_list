@@ -1,9 +1,10 @@
 import { router, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 ////////////////////////////////////////////////////////////
 import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
+import { DeleteTarget } from '@/pages/phones/partials/DeleteConfirmModal';
 import { Department, DepartmentOption, PageProps, PaginationLink, PhoneForm, PhoneRecord } from '@/pages/phones/types';
 import { DEFAULT_TERRITORY, TerritoryKey } from '@/types';
-import { useEffect, useMemo, useRef, useState } from 'react';
 
 export function usePhoneDirectory(
     filters: PageProps['filters'],
@@ -36,6 +37,7 @@ export function usePhoneDirectory(
     const popupRemainingRef = useRef(4000);
 
     const [deleteTarget, setDeleteTarget] = useState<{
+        isPhoneRecord: false;
         route: string;
         title: string;
         territory: string;

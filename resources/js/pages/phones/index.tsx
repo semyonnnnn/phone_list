@@ -138,7 +138,12 @@ function PhonesContent({
                     department={personModal.department}
                     onClose={() => setPersonModal({ isOpen: false, department: null })}
                     isOpen={personModal.isOpen} />
-                <DeleteConfirmModal target={deleteTarget} onClose={() => setDeleteTarget(null)} />
+                <DeleteConfirmModal
+                    deleteRoute={deleteTarget?.route ?? null}
+                    target={deleteTarget}
+                    onClose={() => setDeleteTarget(null)}
+                />
+
 
                 <div className="relative z-10 flex items-center gap-2">
                     {auth.is_authenticated &&

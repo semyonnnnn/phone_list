@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DepartmentStoreRequest;
 use App\Models\Department;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
@@ -23,5 +24,12 @@ class DepartmentController extends Controller
         ]);
 
         return back()->with('success', 'Отдел успешно создан.');
+    }
+    public function destroy(int $id)
+    {
+        $department = Department::findOrFail($id);
+        $department->delete();
+
+        return back()->with('success', 'Отдел удалён');
     }
 }

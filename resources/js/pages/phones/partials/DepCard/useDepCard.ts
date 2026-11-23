@@ -122,13 +122,16 @@ export function useDepCard(
     const pencilSpace = isAuthenticated ? '27px + 0.5rem' : '0px';
 
     const hasPickerCol = activeColumn === 'isBoss' || activeColumn === 'isMiniBoss';
+    const deleteColWidth = isAuthenticated ? '3.5rem' : '0rem';
+
     const gridTemplateColumns = [
         ...(hasPickerCol ? ['13ch'] : []),
-        `minmax(0, calc(${columnWidths.personWidth}ch + 4.5rem))`,
+        `minmax(0, calc(${columnWidths.personWidth}ch + 4.5rem - ${deleteColWidth}))`,
         `calc(${columnWidths.phoneWidth}ch + 2rem)`,
         '12ch',
         'minmax(8ch, 1fr)',
         `calc(${columnWidths.ipWidth}ch + 2rem)`,
+        ...(isAuthenticated ? [deleteColWidth] : []),
     ].join(' ');
 
     // const onAddPersonClick = () => {
