@@ -127,6 +127,7 @@ export default function DepCard({
                             <button
                                 type="button"
                                 onClick={() => onRequestDelete({
+                                    departmentName: dep.group.name,
                                     route: route('departments.destroy', dep.group.id),
                                     title: groupName,
                                     territory: dep.group.territory,
@@ -267,6 +268,8 @@ export default function DepCard({
                                 const bossErrMsg = bossServerError(originalIndex);
                                 const miniBossErrMsg = miniBossServerError(originalIndex);
                                 const rowHasServerError = hasServerError(originalIndex);
+
+                                console.log('row in DepCard/index:', row);
 
                                 let baseCellBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
                                 let hoverCellBg = 'group-hover:bg-black/10';
@@ -492,10 +495,16 @@ export default function DepCard({
                                                 <button
                                                     type="button"
                                                     onClick={() => onRequestDelete({
+                                                        departmentName: dep.group.name,
                                                         route: route('phones.destroy', dep.group.id),
                                                         title: groupName,
                                                         territory: dep.group.territory,
                                                         message: `Удалить запись "${groupName}"?`,
+                                                        phoneDetails: {
+                                                            person: row.person,
+                                                            phone: row.phone,
+                                                            extension: row.extension
+                                                        }
                                                     })}
                                                     title="Удалить запись"
                                                     aria-label="Удалить запись"

@@ -139,10 +139,8 @@ function PhonesContent({
                     onClose={() => setPersonModal({ isOpen: false, department: null })}
                     isOpen={personModal.isOpen} />
                 <DeleteConfirmModal
-                    deleteRoute={deleteTarget?.route ?? null}
                     target={deleteTarget}
-                    onClose={() => setDeleteTarget(null)}
-                />
+                    onClose={() => setDeleteTarget(null)} />
 
 
                 <div className="relative z-10 flex items-center gap-2">

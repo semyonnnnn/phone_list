@@ -77,4 +77,8 @@ class PhoneController extends Controller
             'department_id' => $data['department_id'],
         ]);
     }
+    public function destroy()
+    {
+        dd('hi from phone destroy');
+    }
 }

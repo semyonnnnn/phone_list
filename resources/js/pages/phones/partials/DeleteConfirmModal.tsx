@@ -8,27 +8,10 @@ import {
     IconPhone,
     IconUser,
 } from '@tabler/icons-react';
+////////////////////////////////////////////////////
 import { TERRITORIES, TerritoryKey } from '@/types';
+import { PhoneRecordDetails, DeleteConfirmModalProps } from '@/pages/phones/types';
 
-export interface PhoneRecordDetails {
-    person: string;
-    phone: string;
-    extension: string;
-}
-
-export interface DeleteTarget {
-    departmentName: string;
-    territory: string;
-    title: string;
-    message: string;
-    phoneDetails?: PhoneRecordDetails;
-}
-
-export interface DeleteConfirmModalProps {
-    deleteRoute: string | null;
-    target: DeleteTarget | null;
-    onClose: () => void;
-}
 
 export function PhoneRecordDeleteDetails({
     person, phone, extension,
@@ -70,13 +53,12 @@ export function PhoneRecordDeleteDetails({
 }
 
 export function DeleteConfirmModal({
-    deleteRoute,
     target,
     onClose,
 }: DeleteConfirmModalProps) {
     const [processing, setProcessing] = useState(false);
 
-    if (!target || !deleteRoute) {
+    if (!target) {
         return null;
     }
 
@@ -84,9 +66,8 @@ export function DeleteConfirmModal({
 
     const handleConfirmDelete = () => {
         if (processing) return;
-        console.log(deleteRoute);
 
-        router.delete(deleteRoute, {
+        router.delete(target.route, {
             preserveScroll: true,
             onStart: () => setProcessing(true),
             onFinish: () => setProcessing(false),

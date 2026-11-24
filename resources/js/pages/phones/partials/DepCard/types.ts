@@ -1,3 +1,4 @@
+import { DeleteTarget } from '@/pages/phones/types';
 import type { TerritoryKey } from '@/types';
 export interface PhoneRecord {
     id?: number;
@@ -42,14 +43,7 @@ export interface DepCardProps {
         ipWidth: number;
     };
     onAddPersonClick: (department: Department) => void;
-    onRequestDelete: React.Dispatch<
-        React.SetStateAction<{
-            route: string;
-            title: string;
-            territory: string;
-            message: string;
-        } | null>
-    >;
+    onRequestDelete: React.Dispatch<React.SetStateAction<DeleteTarget>>;
 }
 
 export interface GroupNameInputProps {

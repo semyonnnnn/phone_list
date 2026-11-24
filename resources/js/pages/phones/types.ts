@@ -106,3 +106,23 @@ export const PAGE_STYLE: React.CSSProperties = {
 
 export type PickerColumn = 'isBoss' | 'isMiniBoss';
 export type ActivePicker = { depKey: string | number; column: PickerColumn } | null;
+
+export interface PhoneRecordDetails {
+    person: string;
+    phone: string;
+    extension: string;
+}
+
+export type DeleteTarget = {
+    route: string;
+    departmentName: string;
+    territory: string;
+    title: string;
+    message: string;
+    phoneDetails?: PhoneRecordDetails;
+} | null;
+
+export interface DeleteConfirmModalProps {
+    target: DeleteTarget;
+    onClose: () => void;
+}

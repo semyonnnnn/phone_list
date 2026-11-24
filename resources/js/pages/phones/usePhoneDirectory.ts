@@ -2,8 +2,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 ////////////////////////////////////////////////////////////
 import { usePhoneContext } from '@/pages/phones/context/PhonesContext';
-import { DeleteTarget } from '@/pages/phones/partials/DeleteConfirmModal';
-import { Department, DepartmentOption, PageProps, PaginationLink, PhoneForm, PhoneRecord } from '@/pages/phones/types';
+import { DeleteTarget, Department, DepartmentOption, PageProps, PaginationLink, PhoneForm, PhoneRecord } from '@/pages/phones/types';
 import { DEFAULT_TERRITORY, TerritoryKey } from '@/types';
 
 export function usePhoneDirectory(
@@ -36,13 +35,7 @@ export function usePhoneDirectory(
     const popupStartedAtRef = useRef<number>(0);
     const popupRemainingRef = useRef(4000);
 
-    const [deleteTarget, setDeleteTarget] = useState<{
-        isPhoneRecord: false;
-        route: string;
-        title: string;
-        territory: string;
-        message: string;
-    } | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
     // Show the popup when the server sends a success flash, and hide it after 4 s.
     // pausePopupTimer/resumePopupTimer below rely on the refs set here.
