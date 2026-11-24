@@ -23,21 +23,10 @@ export function useDepCard(
 ) {
     const phones = dep.phones || [];
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [groupName, setGroupName] = useState(dep.group.name);
 
     const { activePicker, togglePicker } = usePhoneContext();
 
     const activeColumn = activePicker?.depKey === depIndex ? activePicker.column : null;
-
-    useEffect(() => {
-        setGroupName(dep.group.name);
-    }, [dep.group.name]);
-
-    const handleGroupSubmit = () => {
-        if (groupName.trim() !== dep.group.name) {
-            onGroupNameChange?.(depIndex, groupName);
-        }
-    };
 
     // Enter just leaves the field. GroupNameInput's own onBlur sends the pending
     // text to the parent, so nothing else has to run here.
@@ -134,15 +123,9 @@ export function useDepCard(
         ...(isAuthenticated ? [deleteColWidth] : []),
     ].join(' ');
 
-    // const onAddPersonClick = () => {
-    //     console.log('hi');
-    // };
-
     return {
         phones,
         activeColumn,
-        groupName,
-        setGroupName,
         setIsModalOpen,
         sortedPhonesWithIndices,
         maxNameLen,
@@ -158,7 +141,6 @@ export function useDepCard(
         handleIsMiniBossButtonClick,
         handleBossRadioChange,
         handleMiniBossCheckboxToggle,
-        handleGroupSubmit,
         handleGroupKeyDown,
         pencilSpace,
         groupError,

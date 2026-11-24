@@ -11,7 +11,6 @@ use App\Enums\Territory;
 use App\Http\Requests\PhoneIndexRequest;
 use App\Http\Requests\PhoneStoreRequest;
 use App\Models\Phone;
-use Illuminate\Http\Request;
 
 class PhoneController extends Controller
 {
@@ -77,8 +76,11 @@ class PhoneController extends Controller
             'department_id' => $data['department_id'],
         ]);
     }
-    public function destroy()
+    public function destroy(int $id)
     {
-        dd('hi from phone destroy');
+        $phoneRecord = Phone::findOrFail($id);
+        $phoneRecord->delete();
+
+        return back()->with('success', "Запись '$phoneRecord->person [тлф $phoneRecord->phone доб $phoneRecord->extension]' удалена");
     }
 }

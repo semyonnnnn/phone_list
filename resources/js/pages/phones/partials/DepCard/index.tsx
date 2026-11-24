@@ -33,7 +33,6 @@ export default function DepCard({
 }: DepCardProps) {
     const {
         activeColumn,
-        groupName,
         sortedPhonesWithIndices,
         isBossChecked,
         isMiniBossChecked,
@@ -99,7 +98,7 @@ export default function DepCard({
                                 <div>
                                     <div className="flex justify-between items-center gap-2 border-b border-black">
                                         <GroupNameInput
-                                            value={groupName}
+                                            value={dep.group.name}
                                             onCommit={(val) => onGroupNameChange?.(depIndex, val)}
                                             onKeyDown={handleGroupKeyDown}
                                         />
@@ -129,9 +128,8 @@ export default function DepCard({
                                 onClick={() => onRequestDelete({
                                     departmentName: dep.group.name,
                                     route: route('departments.destroy', dep.group.id),
-                                    title: groupName,
                                     territory: dep.group.territory,
-                                    message: `Удалить отдел "${groupName}"?`,
+                                    message: `Удалить отдел "${dep.group.name}"?`,
                                 })}
                                 title="Удалить отдел"
                                 aria-label="Удалить отдел"
@@ -207,7 +205,7 @@ export default function DepCard({
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i}>
                                 <span className="text-[5.5rem] font-black text-[#d6d6d6] uppercase whitespace-nowrap tracking-wider font-mono">
-                                    {groupName || 'ОТДЕЛ'}
+                                    {dep.group.name || 'ОТДЕЛ'}
                                 </span>
                             </div>
                         ))}
@@ -268,8 +266,6 @@ export default function DepCard({
                                 const bossErrMsg = bossServerError(originalIndex);
                                 const miniBossErrMsg = miniBossServerError(originalIndex);
                                 const rowHasServerError = hasServerError(originalIndex);
-
-                                console.log('row in DepCard/index:', row);
 
                                 let baseCellBg = sortedIdx % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.03]';
                                 let hoverCellBg = 'group-hover:bg-black/10';
@@ -496,10 +492,9 @@ export default function DepCard({
                                                     type="button"
                                                     onClick={() => onRequestDelete({
                                                         departmentName: dep.group.name,
-                                                        route: route('phones.destroy', dep.group.id),
-                                                        title: groupName,
+                                                        route: route('phones.destroy', row.id),
                                                         territory: dep.group.territory,
-                                                        message: `Удалить запись "${groupName}"?`,
+                                                        message: 'Удалить запись?',
                                                         phoneDetails: {
                                                             person: row.person,
                                                             phone: row.phone,

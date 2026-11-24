@@ -17,7 +17,7 @@ export function PhoneRecordDeleteDetails({
     person, phone, extension,
 }: PhoneRecordDetails) {
     return (
-        <div className="mt-4 border border-[#999] bg-white p-3.5 text-[0.9rem] text-[#111] shadow-[3px_3px_0px_rgba(0,0,0,0.15)]">
+        <div className="mt-4 border-2 border-black bg-white p-3.5 text-[0.9rem] text-[#111]">
             <div className="mb-2 border-b border-[#ddd] pb-1 text-[0.75rem] font-bold tracking-wider text-[#667] uppercase">
                 Удаляемая запись
             </div>
@@ -111,9 +111,6 @@ export function DeleteConfirmModal({
                                 className="border border-[#ccc] bg-[#f5f5f5] px-3.5 py-1.5 text-[#111]"
                             >
                                 <div className="text-[1.05rem] font-bold tracking-wide">
-                                    {target.title}
-                                </div>
-                                <div className="mt-0.5 text-[0.78rem] font-bold text-[#555]">
                                     {target.departmentName}
                                 </div>
                             </div>
@@ -137,41 +134,26 @@ export function DeleteConfirmModal({
 
                     {/* Body */}
                     <div className="p-6">
-                        {isDepartmentDeletion ? (
-                            <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_rgba(50,50,50,0.5)]">
-                                <div className="flex items-center gap-2 border-b border-black pb-2 text-[0.8rem] font-black tracking-widest uppercase">
-                                    <IconFlame
-                                        size={20}
-                                        stroke={2.5}
-                                        className="shrink-0 text-red-600"
-                                        aria-hidden="true"
-                                    />
-                                    <span className="text-red-600">
-                                        Критическое действие:
-                                    </span>
-                                    <span>{isDepartmentDeletion ? 'удаление отдела' : 'удаление записи'}</span>
-                                </div>
-                                <div className="mt-3 space-y-1.5">
-                                    <p className="text-[1.05rem] leading-snug font-bold text-[#111]">
-                                        {target.message}
-                                    </p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex items-start gap-3 border border-red-300 bg-red-50/90 p-4 text-[#111]">
-                                <IconAlertTriangle
-                                    size={24}
-                                    stroke={2}
-                                    className="mt-0.5 shrink-0 text-red-600"
+                        <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_rgba(50,50,50,0.5)]">
+                            <div className="flex items-center gap-2 border-b border-black pb-2 text-[0.8rem] font-black tracking-widest uppercase">
+                                <IconFlame
+                                    size={20}
+                                    stroke={2.5}
+                                    className="shrink-0 text-red-600"
                                     aria-hidden="true"
                                 />
-                                <div className="space-y-1.5">
-                                    <p className="text-[1rem] leading-snug font-bold text-[#111]">
-                                        {target.message}
-                                    </p>
-                                </div>
+                                <span className="text-red-600">
+                                    Критическое действие:
+                                </span>
+                                <span>{isDepartmentDeletion ? 'удаление отдела' : 'удаление записи'}</span>
                             </div>
-                        )}
+                            <div className="mt-3 space-y-1.5">
+                                <p className="text-[1.05rem] leading-snug font-bold text-[#111]">
+                                    {target.message}
+                                </p>
+                            </div>
+                        </div>
+
 
                         {!isDepartmentDeletion && target.phoneDetails !== undefined && (
                             <PhoneRecordDeleteDetails

@@ -117,7 +117,6 @@ export type DeleteTarget = {
     route: string;
     departmentName: string;
     territory: string;
-    title: string;
     message: string;
     phoneDetails?: PhoneRecordDetails;
 } | null;
