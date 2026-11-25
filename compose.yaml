@@ -77,9 +77,6 @@ services:
         volumes:
             - ./app/Python:/app
         working_dir: /app
-        ports:
-            # Laravel doesn't use this mapping, it calls http://python:8000 inside the network
-            - '${LOCAL_BIND:-127.0.0.1}:${PYTHON_PORT:-5000}:5000'
         networks:
             - sail
         restart: unless-stopped
