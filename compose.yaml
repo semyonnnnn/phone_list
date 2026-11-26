@@ -39,35 +39,10 @@ services:
             - 'sail-mariadb:/var/lib/mysql'
             - './docker/mariadb/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
-            - sail
-        healthcheck:
-            test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
-            retries: 3
-            timeout: 5s
-        restart: unless-stopped
-
-    cloudbeaver:
-        image: dbeaver/cloudbeaver:latest
-        volumes:
-            - 'cloudbeaver-data:/opt/cloudbeaver/workspace'
-        depends_on:
-            - mariadb
-        networks:
-            - sail
-        restart: unless-stopped
-
-    cloudbeaver-gate:
-        image: nginx:alpine
-        ports:
-            # this is the only published CloudBeaver port; the allow-list
-            # inside the nginx config decides who gets through
-            - '${LAN_BIND:-127.0.0.1}:${CLOUDBEAVER_PORT}:80'
-        volumes:
-            - './docker/${NGINX_DIR:-nginx_dev}/cloudbeaver-nginx.conf:/etc/nginx/conf.d/default.conf:ro'
-        depends_on:
-            - cloudbeaver
-        networks:
-            - sail
+            sail:
+            db-admin-net:
+                aliases:
+                    - '${DB_ADMIN_ALIAS:-mariadb-phones-dev}'
         restart: unless-stopped
 
     python:
@@ -85,9 +60,9 @@ services:
 networks:
     sail:
         driver: bridge
+    db-admin-net:
+        external: true
 
 volumes:
     sail-mariadb:
-        driver: local
-    cloudbeaver-data:
         driver: local
