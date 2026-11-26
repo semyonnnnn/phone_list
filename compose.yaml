@@ -1,4 +1,17 @@
 services:
+    app-gate:
+        image: nginx:alpine
+        profiles: ["dev"]
+        ports:
+            - '${APP_PORT}:80'
+        volumes:
+            - './docker/nginx_dev/app-gate.conf:/etc/nginx/conf.d/default.conf:ro'
+        depends_on:
+            - laravel.test
+        networks:
+            - sail
+        restart: unless-stopped
+
     laravel.test:
         build:
             context: './docker/8.5'
@@ -10,7 +23,7 @@ services:
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - '${APP_PORT}:80'
+            - '${DIRECT_APP_PORT:-127.0.0.1:8000}:80'
             # - '${LAN_BIND}:${VITE_PORT}:5173'
         environment:
             WWWUSER: '${WWWUSER}'

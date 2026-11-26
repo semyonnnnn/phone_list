@@ -6,8 +6,8 @@ sudo netfilter-persistent save
 
 # close
 
-sudo iptables -I DOCKER-USER 1 -s <your_ip> -p tcp --dport <port> -j RETURN
-sudo iptables -I DOCKER-USER 2 -p tcp --dport <port> -j DROP
+sudo iptables -I DOCKER-USER 1 -s 10.166.25.182 -p tcp --dport 80 -j RETURN
+sudo iptables -I DOCKER-USER 2 -p tcp --dport 80 -j DROP
 sudo netfilter-persistent save
 
 # check 
