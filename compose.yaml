@@ -22,9 +22,6 @@ services:
         image: 'sail-8.5/app'
         extra_hosts:
             - 'host.docker.internal:host-gateway'
-        ports:
-            - '${DIRECT_APP_PORT:-127.0.0.1:8000}:80'
-            # - '${LAN_BIND}:${VITE_PORT}:5173'
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
