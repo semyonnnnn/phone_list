@@ -8,7 +8,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 import io
 ######################
-from enums.enums import Territory 
+from enums.enums import Territory
 
 router = APIRouter()
 
@@ -51,17 +51,10 @@ def set_table_borders(table, size=4, color="000000"):
 BOSS_BG = "D9D9D9"
 MINIBOSS_BG = "F2F2F2"
 REGULAR_BG = None
+POSITION_BG = "E8EEF5"
 
 
 def sort_key(emp):
-    """
-    Bosses first (0),
-    minibosses second (1),
-    everyone else last (2).
-
-    Within each tier, the original relative order is preserved
-    because Python's sorted() is stable.
-    """
     if emp.get("isBoss"):
         return 0
 
@@ -72,20 +65,13 @@ def sort_key(emp):
 
 
 def department_sort_key(item):
-    """
-    Put 'Руководство' first.
-
-    Comparison is case-insensitive and ignores leading/trailing
-    whitespace.
-
-    All other departments are sorted alphabetically.
-    """
     group_name = str(item[0]).strip().casefold()
 
     if group_name == "руководство":
         return (0, "")
 
     return (1, group_name)
+
 
 @router.post("/files/download")
 async def generate_word_document(request: Request):
@@ -113,14 +99,16 @@ async def generate_word_document(request: Request):
         section.left_margin = Inches(0.6)
         section.right_margin = Inches(0.6)
 
-        # Column widths
+        # Column widths (total = 9.0 inches)
         col_widths = [
-            Inches(4.5),  # ФИО
-            Inches(1.5),  # Телефон
+            Inches(3.5),  # ФИО
+            Inches(1.4),  # Телефон       -> left two columns = 4.9 in (50%)
             Inches(1.2),  # Добавочный
-            Inches(1.0),  # Кабинет
-            Inches(0.8)   # IP
+            Inches(1.1),  # Кабинет
+            Inches(2.6),  # IP            -> right three columns = 4.9 in (50%)
         ]
+        half_width = Inches(4.9)
+        total_width = sum(w for w in col_widths)
 
         def territory_sort_key(item: tuple[str, dict]):
             terr_key = item[0]
@@ -138,7 +126,6 @@ async def generate_word_document(request: Request):
             terr_enum = Territory.from_key(terr_key)
             terr_label = terr_enum.value if terr_enum else (terr_key.upper() or "Прочее")
 
-            # Territory header above its department tables
             terr_p = doc.add_paragraph()
             terr_p.paragraph_format.space_before = Pt(6 if terr_idx == 0 else 14)
             terr_p.paragraph_format.space_after = Pt(6)
@@ -157,6 +144,7 @@ async def generate_word_document(request: Request):
             ):
                 table = doc.add_table(rows=0, cols=5)
                 table.alignment = WD_TABLE_ALIGNMENT.CENTER
+                table.autofit = False
                 set_table_borders(table)
 
                 # Department header
@@ -202,11 +190,11 @@ async def generate_word_document(request: Request):
                 for emp in sorted_emp_list:
                     row = table.add_row()
                     row_data = [
-                        emp.get("person", ""),
-                        emp.get("phone", ""),
-                        emp.get("extension", ""),
-                        emp.get("cabinet", ""),
-                        emp.get("ip", "")
+                        emp.get("person") or "",
+                        emp.get("phone") or "",
+                        emp.get("extension") or "",
+                        emp.get("cabinet") or "",
+                        emp.get("ip") or ""
                     ]
 
                     if emp.get("isBoss"):
@@ -233,6 +221,39 @@ async def generate_word_document(request: Request):
 
                         if emp.get("isBoss"):
                             run.bold = True
+
+                    # Optional sub-row for Position (left 50%) & Comment (right 50%)
+                    position = str(emp.get("position") or "").strip()
+                    comment = str(emp.get("comment") or "").strip()
+
+                    if position or comment:
+                        sub_row = table.add_row()
+
+                        # Merge cells [0..1] for left 50% (Position) and [2..4] for right 50% (Comment)
+                        left_cell = sub_row.cells[0]
+                        left_cell.merge(sub_row.cells[1])
+                        left_cell.width = half_width
+
+                        right_cell = sub_row.cells[2]
+                        right_cell.merge(sub_row.cells[4])
+                        right_cell.width = half_width
+
+                        for meta_cell, text_val, is_italic, cell_bg in (
+                            (left_cell, position, False, POSITION_BG),
+                            (right_cell, comment, True, row_bg),
+                        ):
+                            if cell_bg:
+                                set_cell_background(meta_cell, cell_bg)
+
+                            mp = meta_cell.paragraphs[0]
+                            mp.paragraph_format.space_before = Pt(2)
+                            mp.paragraph_format.space_after = Pt(2)
+
+                            mrun = mp.add_run(text_val)
+                            mrun.font.name = "Arial"
+                            mrun.font.size = Pt(9)
+                            mrun.italic = is_italic
+                            mrun.font.color.rgb = RGBColor(68, 68, 68)
 
         # Save document to memory
         file_stream = io.BytesIO()

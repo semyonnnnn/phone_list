@@ -51,6 +51,8 @@ class FileController extends Controller
                     'ip'            => $phone->ip ?? '',
                     'isBoss'        => (bool) ($phone->is_boss ?? $phone->isBoss),
                     'isMiniBoss'    => (bool) ($phone->is_miniboss ?? $phone->isMiniBoss),
+                    'position'      => $phone->position ?? '',
+                    'comment'       => $phone->comment ?? '',
                 ];
             });
 
