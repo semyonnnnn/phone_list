@@ -114,14 +114,18 @@ export function useDepCard(
     const deleteColWidth = isAuthenticated ? '3.5rem' : '0rem';
 
     const gridTemplateColumns = [
-        ...(hasPickerCol ? ['13ch'] : []),
-        `minmax(0, calc(${columnWidths.personWidth}ch + 4.5rem - ${deleteColWidth}))`,
-        `calc(${columnWidths.phoneWidth}ch + 2rem)`,
-        '12ch',
-        'minmax(8ch, 1fr)',
-        `calc(${columnWidths.ipWidth}ch + 2rem)`,
-        ...(isAuthenticated ? [deleteColWidth] : []),
-    ].join(' ');
+    ...(hasPickerCol ? ['13ch'] : []),
+    `minmax(0, calc(${columnWidths.personWidth}ch + 4.5rem - ${deleteColWidth}))`,
+    `calc(${columnWidths.phoneWidth}ch + 2rem)`,
+    '12ch',
+    `20ch`,
+    'minmax(20ch, 1fr)',
+    `calc(${columnWidths.ipWidth}ch + 2rem)`,
+    ...(isAuthenticated ? [deleteColWidth] : []),
+].join(' ');
+
+
+    
 
     return {
         phones,

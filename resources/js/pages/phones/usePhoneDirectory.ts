@@ -326,12 +326,14 @@ export function usePhoneDirectory(
         const longestIp = Math.max(0, ...allPhones.map((p) => (p.ip ?? '').length));
 
         return {
-            personWidth: Math.max(longestPerson + 3, 12),
+            personWidth: Math.max(longestPerson + 7, 12),
             phoneWidth: Math.max(longestPhone + 3, 10),
             cabinetWidth: Math.max(longestCabinet + 3, 8),
             ipWidth: Math.max(longestIp + 3, 10),
         };
     }, [data.departments]);
+
+    
 
     const isDatabaseEmpty = (totalDatabaseCount ?? 0) === 0;
     const isSearchActive = Boolean(filters?.search && filters.search.trim() !== '');

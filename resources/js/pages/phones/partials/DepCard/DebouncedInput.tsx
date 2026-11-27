@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 //////////////////////////////////////////////////
 import { DebouncedInputProps } from "./types";
 
-export function DebouncedInput({ value, onChange, readOnly, className }: DebouncedInputProps) {
+export function DebouncedInput({ value, onChange, readOnly, className, placeholder }: DebouncedInputProps) {
     const [localValue, setLocalValue] = useState(value ?? '');
 
     // Keep local state in sync if parent resets (e.g. Cancel button)
@@ -28,6 +28,7 @@ export function DebouncedInput({ value, onChange, readOnly, className }: Debounc
 
     return (
         <input
+            placeholder={placeholder}
             type="text"
             className={className}
             value={localValue}

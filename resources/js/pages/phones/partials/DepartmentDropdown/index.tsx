@@ -23,7 +23,7 @@ export default function DepartmentDropdown({
     } = useDepartmentDropdown(options, onSelect);
 
     return (
-        <div className="relative w-[300px] z-50" ref={dropdownRef}>
+        <div className="relative w-75 z-50" ref={dropdownRef}>
             <div className="flex border border-black bg-black">
                 <div
                     className="relative flex-1 min-w-0 flex items-center cursor-pointer"
@@ -37,7 +37,7 @@ export default function DepartmentDropdown({
                         onChange={handleInputChange}
                         onFocus={handleInputFocus}
                         placeholder="Все отделы..."
-                        className="w-full text-[1.15rem] p-2 pr-8 bg-transparent text-[#f5f5f5] outline-none cursor-pointer placeholder-[#aaa]"
+                        className="w-full text-[1.15rem] p-1 pr-8 bg-transparent text-[#f5f5f5] outline-none cursor-pointer placeholder-[#aaa]"
                         style={{ fontFamily: '"Courier New", Courier, monospace' }}
                     />
 

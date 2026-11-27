@@ -25,16 +25,16 @@ export const Pagination = ({ pagination }: PaginationProps) => {
     if (!pagination || pagination.last_page <= 1) return null;
 
     return (
-        <div className="flex justify-between pr-20 pl-10 py-4 bg-[#1a1a1a]/90 border border-[#555] shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+        <div className="flex justify-between items-center pr-20 pl-10 py-1  bg-[#1a1a1a]/90  shadow-[0px_0px_5px_rgba(60,180,20,0.5)]">
             <GlobalSwitch />
-            <div className="flex justify-center items-center gap-2">
+            <div className="flex justify-center items-center gap-1.5">
                 {pagination.links.map((link, idx) => {
                     const translatedLabel = translatePaginationLabel(link.label);
                     if (!link.url) {
                         return (
                             <span
                                 key={idx}
-                                className="px-3 py-1 text-[#777] bg-[#222] border border-[#444] cursor-not-allowed text-[1rem]"
+                                className="inline-flex items-center justify-center h-7 px-2.5 text-[#777] bg-[#222] border border-[#444] cursor-not-allowed text-[0.9rem] leading-none"
                                 dangerouslySetInnerHTML={{ __html: translatedLabel }}
                             />
                         );
@@ -45,7 +45,7 @@ export const Pagination = ({ pagination }: PaginationProps) => {
                             href={link.url}
                             preserveState
                             preserveScroll
-                            className={`px-3 py-1 border text-[1rem] transition-colors ${link.active
+                            className={`inline-flex items-center justify-center h-7 px-2.5 border text-[0.9rem] leading-none transition-colors ${link.active
                                 ? 'bg-white text-black font-bold border-white'
                                 : 'bg-[#2d2d2d] text-[#e0e0e0] border-[#667] hover:bg-[#3d3d3d]'
                                 }`}

@@ -59,6 +59,7 @@ export interface DebouncedInputProps {
     onChange: (val: string) => void;
     readOnly?: boolean;
     className?: string;
+    placeholder?: string;
 }
 
 export type DepartmentGroup = {

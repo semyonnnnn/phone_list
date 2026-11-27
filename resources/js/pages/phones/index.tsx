@@ -62,7 +62,6 @@ function PhonesContent({
         departmentNameWidth,
         columnWidths,
         isDatabaseEmpty,
-        isSearchActive,
         onAddDepartmentClick,
         isAddDepModalOpen,
         setIsAddDepModalOpen,
@@ -74,7 +73,7 @@ function PhonesContent({
 
     return (
         <div
-            className="min-h-screen text-[#111] p-16 min-w-[1200px] text-[1.15rem] bg-[#000000]"
+            className="min-h-screen text-[#111] p-4 min-w-300 text-[1.15rem] bg-[#000000]"
             style={PAGE_STYLE}
         >
             <Head title="Справочник" />
@@ -88,12 +87,11 @@ function PhonesContent({
             />
 
             <div
-                className="p-5 border border-[#ccc] flex justify-between items-center mb-14 shadow-[6px_6px_0px_rgba(0,0,0,0.4)] relative z-40"
+                className="px-5 py-1 flex justify-between items-center mb-4 shadow-[0px_0px_10px_rgba(200,200,200,0.9)] relative z-40 rounded-md"
                 style={{
                     background: 'conic-gradient(#000 90deg, #667 90deg 180deg, #000 180deg 270deg, #667 270deg)',
                     backgroundSize: '0.5rem 0.5rem',
-                }}
-            >
+                }}>
                 <div
                     className="absolute inset-y-0 left-0 w-[45%] z-0 pointer-events-none"
                     style={{
@@ -102,12 +100,12 @@ function PhonesContent({
                 />
 
                 <div className="relative z-10 flex items-center gap-5">
-                    <div className="relative w-[300px]">
+                    <div className="relative w-75">
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="text-[1.15rem] p-2 pr-9 border-0 border-b border-[#999] w-full outline-none bg-transparent focus:border-[#000]"
+                            className="text-[1.05rem] h-9 px-2 pr-8 border-0 border-b border-[#999] w-full outline-none bg-transparent focus:border-black"
                             style={{ fontFamily: '"Courier New", Courier, monospace' }}
                             placeholder="Поиск по ФИО / телефону..."
                         />
@@ -116,7 +114,7 @@ function PhonesContent({
                             <button
                                 type="button"
                                 onClick={() => setSearchQuery('')}
-                                className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 border border-[#555] bg-transparent text-[#222] flex items-center justify-center text-[1rem] leading-none cursor-pointer hover:bg-[#222] hover:text-white transition-colors"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 border border-[#555] bg-transparent text-[#222] flex items-center justify-center text-[0.95rem] leading-none cursor-pointer hover:bg-[#222] hover:text-white transition-colors"
                                 aria-label="Очистить поиск"
                             >
                                 ×
@@ -133,6 +131,7 @@ function PhonesContent({
                             setSelectedOption(option.label);
                         }} />
                 </div>
+
                 <AddDepartmentModal onClose={() => setIsAddDepModalOpen(false)} isOpen={isAddDepModalOpen} />
                 <AddPersonModal
                     department={personModal.department}
@@ -142,33 +141,33 @@ function PhonesContent({
                     target={deleteTarget}
                     onClose={() => setDeleteTarget(null)} />
 
-
                 <div className="relative z-10 flex items-center gap-2">
                     {auth.is_authenticated &&
-                        <div className='flex gap-1'>
+                        <div className="flex items-center gap-1.5">
                             <button
                                 type="button"
                                 onClick={() => handleTerritoryUpload('ekb')}
-                                className="flex gap-2 text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
-                                style={{ fontFamily: '"Courier New", Courier, monospace' }}>
-                                <div>ЕКБ</div>
-                                <UploadIcon />
+                                className="inline-flex items-center justify-center gap-2 h-9 px-4 text-[1.05rem] leading-none bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
+                                style={{ fontFamily: '"Courier New", Courier, monospace' }}
+                            >
+                                <span>ЕКБ</span>
+                                <UploadIcon className="w-4 h-4 shrink-0" />
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleTerritoryUpload('krg')}
-                                className="flex gap-2 text-[1.15rem] px-5 py-2 bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
+                                className="inline-flex items-center justify-center gap-2 h-9 px-4 text-[1.05rem] leading-none bg-black text-[#f5f5f5] border border-black cursor-pointer font-bold hover:bg-[#222]"
                                 style={{ fontFamily: '"Courier New", Courier, monospace' }}
                             >
-                                <div>КРГ</div>
-                                <UploadIcon />
+                                <span>КРГ</span>
+                                <UploadIcon className="w-4 h-4 shrink-0" />
                             </button>
                         </div>
                     }
                     <button
                         type="button"
                         onClick={handleDownload}
-                        className="text-[1.15rem] px-5 py-2 bg-[#e5e5e5] text-[#000] border border-black cursor-pointer font-bold hover:bg-[#d5d5d5] mr-4"
+                        className="inline-flex items-center justify-center h-9 px-4 text-[1.05rem] leading-none bg-[#e5e5e5] text-[#000] border border-black cursor-pointer font-bold hover:bg-[#d5d5d5] mr-3"
                         style={{ fontFamily: '"Courier New", Courier, monospace' }}
                     >
                         Скачать
@@ -178,7 +177,7 @@ function PhonesContent({
                             href={route('logout')}
                             method="post"
                             as="button"
-                            className="inline-block text-[1.15rem] px-7 py-2 bg-[#333] text-white border border-black cursor-pointer font-bold hover:bg-[#444] transition-colors text-center no-underline"
+                            className="inline-flex items-center justify-center h-9 px-6 text-[1.05rem] leading-none bg-[#333] text-white border border-black cursor-pointer font-bold hover:bg-[#444] transition-colors text-center no-underline"
                             style={{
                                 fontFamily: '"Courier New", Courier, monospace',
                                 clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))'
@@ -188,7 +187,7 @@ function PhonesContent({
                         </Link>) :
                         (<Link
                             href={route('login')}
-                            className="inline-block text-[1.15rem] px-7 py-2 bg-black text-[#f5f5f5] cursor-pointer font-bold hover:bg-[#222] transition-colors text-center no-underline"
+                            className="inline-flex items-center justify-center h-9 px-6 text-[1.05rem] leading-none bg-black text-[#f5f5f5] cursor-pointer font-bold hover:bg-[#222] transition-colors text-center no-underline"
                             style={{
                                 fontFamily: '"Courier New", Courier, monospace',
                                 clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))'
@@ -199,7 +198,8 @@ function PhonesContent({
                 </div>
             </div>
 
-            <main className="mt-12 space-y-12">
+
+            <main className="space-y-6">
                 {isDatabaseEmpty ? (
                     <div className="border-2 border-[#888] p-8 text-center bg-black/90 shadow-[6px_6px_0px_rgba(255,255,255,0.15)] text-[#f0f0f0]">
                         <div className="text-[1.25rem] font-bold tracking-wider uppercase mb-2 text-[#ffcc00]">
@@ -215,7 +215,7 @@ function PhonesContent({
                             pagination={pagination}
                         />
 
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             {/* .map passes two positional arguments: the element and its index.
                                 `dep` is inferred as Department ({ group, phones }) from
                                 data.departments, which is exactly what DepCard's `dep` prop
