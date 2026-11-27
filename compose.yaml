@@ -31,6 +31,7 @@ services:
         profiles: ["dev"]
         ports:
             - '${APP_PORT}:80'
+            - '${VITE_PORT:-5173}:5173'
         volumes:
             - './docker/nginx_dev/app-gate.conf:/etc/nginx/conf.d/default.conf:ro'
         depends_on:
@@ -38,6 +39,7 @@ services:
         networks:
             - sail
         restart: unless-stopped
+
 
     laravel-dev:
         <<: *laravel-base
