@@ -12,6 +12,8 @@ class Phone extends Model
     protected $fillable = [
         'person',
         'extension',
+        'position',
+        'comment',
         'phone',
         'file_id',
         'cabinet',

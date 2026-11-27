@@ -33,6 +33,8 @@ class PhoneUpdateRequest extends FormRequest
 
             // Fields the user edits.
             'departments.*.phones.*.cabinet' => ['nullable', 'string', 'max:255'],
+            'departments.*.phones.*.position' => ['nullable', 'string', 'max:255'],
+            'departments.*.phones.*.comment' => ['nullable', 'string', 'max:255'],
             'departments.*.phones.*.ip' => ['nullable', 'string', 'max:255'],
             'departments.*.phones.*.isBoss' => ['nullable', 'boolean'],
             'departments.*.phones.*.isMiniBoss' => ['nullable', 'boolean'],
@@ -68,6 +70,10 @@ class PhoneUpdateRequest extends FormRequest
 
             'departments.*.phones.*.cabinet.string' => 'Поле "Кабинет" должно быть строкой.',
             'departments.*.phones.*.cabinet.max' => 'Поле "Кабинет" не должно превышать 255 символов.',
+            'departments.*.phones.*.position.string' => 'Поле "Должность" должно быть строкой.',
+            'departments.*.phones.*.position.max' => 'Поле "Должность" не должно превышать 255 символов.',
+            'departments.*.phones.*.comment.string' => 'Поле "Комментарий" должно быть строкой.',
+            'departments.*.phones.*.comment.max' => 'Поле "Комментарий" не должно превышать 255 символов.',
             'departments.*.phones.*.ip.string' => 'Поле "IP" должно быть строкой.',
             'departments.*.phones.*.ip.max' => 'Поле "IP" не должно превышать 255 символов.',
             'departments.*.phones.*.isBoss.boolean' => 'Поле "Начальник" должно иметь логическое значение.',

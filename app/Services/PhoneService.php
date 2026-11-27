@@ -240,6 +240,8 @@ class PhoneService
                     $person    = $this->clean($phoneData['person'] ?? null);
                     $phone     = $this->clean($phoneData['phone'] ?? null);
                     $extension = $this->clean($phoneData['extension'] ?? null);
+                    $position  = $this->clean($phoneData['position'] ?? null);
+                    $comment   = $this->clean($phoneData['comment'] ?? null);
 
                     $this->phoneRepository->updateEditable(
                         $phoneData['id'],
@@ -249,6 +251,8 @@ class PhoneService
                         $person === '' ? null : $person,
                         $phone === '' ? null : $phone,
                         $extension === '' ? null : $extension,
+                        $position === '' ? null : $position,
+                        $comment === '' ? null : $comment,
                     );
                 }
 

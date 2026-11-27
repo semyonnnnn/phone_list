@@ -49,10 +49,6 @@ class PhoneController extends Controller
         ]);
     }
 
-    /**
-     * Update multiple phone records in bulk using the custom FormRequest.
-     */
-    // PhoneUpdateRequest
     public function update(PhoneUpdateRequest $r, PhoneService $phones)
     {
         $phones->update($r->validated()['departments']);
@@ -61,6 +57,7 @@ class PhoneController extends Controller
             ->back()
             ->with('success', 'Справочник успешно обновлен.');
     }
+
     public function store(PhoneStoreRequest $r)
     {
         $data = $r->validated();

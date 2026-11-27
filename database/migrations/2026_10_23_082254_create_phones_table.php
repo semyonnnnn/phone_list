@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('phone');
             $table->string('file_id')->nullable()->index();
             $table->string('cabinet')->nullable();
+            $table->string('position')->nullable();
+            $table->string('comment')->nullable();
             $table->string('ip')->nullable();
             $table->boolean('isBoss')->default(false);
             $table->boolean('isMiniBoss')->default(false);

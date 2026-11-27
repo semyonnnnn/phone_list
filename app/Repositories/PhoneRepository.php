@@ -130,7 +130,9 @@ class PhoneRepository
         bool $isMiniBoss,
         ?string $person,
         ?string $phone,
-        ?string $extension
+        ?string $extension,
+        ?string $position,
+        ?string $comment,
     ): void {
         Phone::whereKey($id)->update([
             'cabinet'    => $cabinet,
@@ -139,6 +141,8 @@ class PhoneRepository
             'person' => $person,
             'phone' => $phone,
             'extension' => $extension,
+            'position' => $position,
+            'comment' => $comment,
         ]);
     }
 
